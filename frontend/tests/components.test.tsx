@@ -23,6 +23,30 @@ vi.mock("@/lib/api", async () => {
       createTask: vi.fn().mockResolvedValue({ id: "task-1", goal: "goal", status: "CREATED" }),
       startTask: vi.fn().mockResolvedValue({ id: "task-1" }),
       browser: vi.fn().mockResolvedValue({ available: false }),
+      browserDiagnostics: vi.fn().mockResolvedValue({
+        ok: false,
+        platform: "linux",
+        python: "3.12.3",
+        playwright_installed: true,
+        playwright_version: "1.47.0",
+        browser_installed: false,
+        browser_dirs: [],
+        executable_path: null,
+        missing_system_libs: [],
+        headless_configured: true,
+        last_launch_error: "BrowserType.launch: Executable doesn't exist",
+        last_launch_error_type: "Error",
+        problem: "Chromium is not installed for this Python environment.",
+        remedy: "python -m playwright install --with-deps chromium",
+      }),
+      testBrowser: vi.fn().mockResolvedValue({
+        launched: false,
+        loaded_page: false,
+        duration_ms: null,
+        error: "BrowserType.launch: Executable doesn't exist",
+        error_type: "Error",
+        remedy: "python -m playwright install --with-deps chromium",
+      }),
     },
   };
 });
@@ -171,8 +195,21 @@ describe("StatusPill & security states", () => {
     expect(screen.getByText(/next:/i)).toBeInTheDocument();
   });
 
-  it("explains a browser-unavailable failure", () => {
-    render(<StateMessage task={{ ...baseTask, status: "FAILED", error: "Browser could not be started" }} />);
-    expect(screen.getByText(/browser unavailable/i)).toBeInTheDocument();
+  it("explains a browser-unavailable failure and shows the fix command", async () => {
+    render(<StateMessage task={{ ...baseTask, status: "FAILED", error: "Browser unavailable: Browser could not be started" }} />);
+    expect(screen.getByRole("heading", { name: /browser unavailable/i })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText("python -m playwright install --with-deps chromium")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(/chromium is not installed/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /test browser launch/i })).toBeInTheDocument();
+  });
+
+  it("never renders a dangling reason for a legacy failed task", () => {
+    // Rows written before the driver-error fix can contain a bare "…started:".
+    render(<StateMessage task={{ ...baseTask, status: "FAILED", error: "Browser could not be started:" }} />);
+    const text = document.body.textContent ?? "";
+    expect(text).not.toMatch(/started:\s*(?=$)/m);
+    expect(text).toMatch(/returned no detail message/i);
   });
 });

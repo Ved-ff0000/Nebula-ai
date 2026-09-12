@@ -250,8 +250,12 @@ class Orchestrator:
             self._set_status(db, "FAILED", error=msg)
             log_event(self.task_id, "error", msg, status="failed")
         except BrowserUnavailable as e:
+            # `e` already carries the precise driver error plus the fix command.
             self._set_status(db, "FAILED", error=str(e))
-            log_event(self.task_id, "error", f"Browser unavailable: {e}", status="failed")
+            log_event(self.task_id, "error", f"Browser unavailable. {e}", status="failed")
+            log_event(self.task_id, "status",
+                      "No browser actions were executed. Fix the browser environment, then start a new task.",
+                      status="warning")
         except asyncio.TimeoutError:
             msg = f"A step exceeded its {settings.step_timeout_seconds}s timeout."
             self._set_status(db, "FAILED", error=msg)
@@ -366,10 +370,14 @@ class Orchestrator:
         if getattr(self, "_finished", False):
             return
         self._finished = True
-        if session is not None or browser_worker.get_session(self.task_id) is not None:
+        # Only report a browser teardown when a session actually existed —
+        # previously this fired even when the launch had failed, which made the
+        # timeline read as though the browser had been running.
+        live_session = session is not None or browser_worker.get_session(self.task_id) is not None
+        if live_session:
             await browser_worker.close_task_session(self.task_id)
+            log_event(self.task_id, "status", "Browser session closed and cleaned up.")
         registry.unregister(self.task_id)
-        log_event(self.task_id, "status", "Browser session closed and cleaned up.")
         db.close()
 
 

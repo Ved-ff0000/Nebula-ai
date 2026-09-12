@@ -1,8 +1,11 @@
 # NEBULA — developer shortcuts
-.PHONY: help install backend frontend test test-backend test-frontend typecheck build lint docker-up docker-down clean verify-tracked
+.PHONY: help doctor install backend frontend test test-backend test-frontend typecheck build lint docker-up docker-down clean verify-tracked
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+doctor: ## Diagnose the browser environment (why can't the agent start Chromium?)
+	@cd backend && python scripts/diagnose.py --launch
 
 verify-tracked: ## Fail if any source file on disk is untracked (guards .gitignore mistakes)
 	@tmp=$${TMPDIR:-/tmp}/nebula-tracked-check.$$$$; \

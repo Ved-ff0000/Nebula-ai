@@ -10,6 +10,7 @@ import logging
 import time
 from typing import Dict, Optional
 
+from app.browser.diagnostics import check_browser_environment, describe_exception, install_command
 from app.browser.observation import SCROLL_JS, Observation, observe_page
 from app.browser.tools import ToolResult
 from app.browser.verification import (
@@ -41,6 +42,10 @@ class BrowserWorker:
         self._lock = asyncio.Lock()
         self._sessions: Dict[str, "TaskSession"] = {}
         self._final_frames: Dict[str, dict] = {}
+        #: last launch failure — surfaced by /api/health and the UI so a broken
+        #: environment is diagnosable without reading server logs
+        self.last_launch_error: Optional[str] = None
+        self.last_launch_error_type: Optional[str] = None
 
     async def _ensure_browser(self):
         async with self._lock:
@@ -64,7 +69,18 @@ class BrowserWorker:
                 return self._browser
             except Exception as e:
                 self._pw = None
-                raise BrowserUnavailable(f"Browser could not be started: {e}") from e
+                # Record the failure so /api/health and the UI can explain it.
+                # NOTE: never interpolate the exception directly — Playwright
+                # raises bare TimeoutError()/Error() on some launch failures and
+                # str() of those is "", which produced the useless message
+                # "Browser could not be started:" with nothing after the colon.
+                self.last_launch_error = describe_exception(e)
+                self.last_launch_error_type = type(e).__name__
+                log.error("Chromium launch failed: %s", self.last_launch_error, exc_info=True)
+                diag = check_browser_environment(self.last_launch_error, self.last_launch_error_type)
+                hint = f" Fix: {diag.remedy}" if diag.remedy else f" Fix: {install_command(True)}"
+                raise BrowserUnavailable(
+                    f"Browser could not be started — {self.last_launch_error}.{hint}") from e
 
     async def start_task_session(self, task_id: str) -> "TaskSession":
         if task_id in self._sessions:

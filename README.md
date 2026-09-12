@@ -330,6 +330,8 @@ Errors use consistent HTTP codes with a `detail` message; every task endpoint en
 | Symptom | Fix |
 | --- | --- |
 | `Browser could not be started` / missing `libnspr4.so` | `python -m playwright install --with-deps chromium` (installs system libraries) |
+| Any browser problem at all | Run **`make doctor`** (`python backend/scripts/diagnose.py --launch`) — it reports the Playwright version, where Chromium is expected, any missing *system* libraries, the last launch error, and the exact command that fixes it. Exit code `0` = ready, `1` = something is missing. |
+| UI says **Browser unavailable** with a *Fix* command | The agent never executed any action — the environment is broken, not the task. Run the command shown on the failure card (or in *Settings → Browser environment*), press **Test browser launch**, then start a new task. |
 | `Cannot reach the NEBULA backend` in the UI | Start the API on `:8000`, or set `BACKEND_URL` for the frontend server |
 | Connection chip shows **polling** instead of **live** | WebSocket upgrade blocked by a proxy — the UI keeps working via polling; allow `/ws/*` upstream |
 | `Incorrect email or password` on first run | Delete `backend/data/nebula.db` and restart to re-seed the demo user (or register a new account) |

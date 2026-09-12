@@ -12,6 +12,10 @@ Last updated: 2026-09-12 · Version: **V1.0.0 (complete)**
 **Phase 7 — complete.** All seven phases of the master specification are implemented, tested and
 documented. The project is runnable end-to-end locally and via Docker.
 
+**Current test status:** backend `pytest` **56 passed** · frontend `vitest` **14 passed** ·
+`tsc --noEmit` clean · `next build` succeeds. A browser-environment *doctor* is available:
+`make doctor` (or `python backend/scripts/diagnose.py --launch`).
+
 | Phase | Scope | State |
 | --- | --- | --- |
 | 1 | Architecture + frontend shell | ✅ |
@@ -149,6 +153,37 @@ Fixed during visual QA of the live system (screenshots in `docs/screenshots/`):
    directory*, so they cannot catch an incomplete push. Validate the artefact, not just the machine:
    `git clone <repo> /tmp/v && (cd /tmp/v/frontend && npm ci && npm run build)` — or at minimum
    `make verify-tracked` before pushing.
+
+8. **`Browser could not be started:` — message truncated at the colon** (reported by the user from the live
+   timeline UI, twice). Root causes: (a) Playwright's `TimeoutError()`/`Error()` are frequently raised with
+   **no message at all**, so `str(exc) == ""` and `f"…started: {exc}"` renders a dangling colon; (b)
+   `BrowserUnavailable` already carried a "Browser unavailable:" prefix and the orchestrator added another,
+   producing doubled labels; (c) nothing in the codebase ever said *what* was wrong or how to fix it; and
+   (d) `_finish()` emitted a "Browser session closed and cleaned up" event even when the launch had failed,
+   so the log implied a session that never existed.
+   Fixes: new `app/browser/diagnostics.py` with `describe_exception()` (guaranteed non-empty, always names
+   the exception type, falls back to `.message`/`args`, flags bare timeouts, strips Playwright's
+   box-art/trailing signature and truncates sensibly); `check_browser_environment()` (package version,
+   browser dirs, executable discovery, `ldd`-based missing-*system*-library detection, last launch error,
+   `problem` + `remedy`); `run_launch_test()` (real launch + page load); new
+   `backend/scripts/diagnose.py` + `make doctor`; `/api/health` gained a `browser` block and
+   `GET /api/health/browser` + `POST /api/health/browser/test` were added (the old `browser_connected`
+   field is kept for compatibility); `worker.py` stores `last_launch_error` and logs with `exc_info=True`;
+   `orchestrator.py` emits the driver error **and** "No browser actions were executed…" and only logs
+   teardown when a live session existed; the frontend gained `BrowserFixPanel` (inside `StateMessage`),
+   a browser-environment section on `/settings`, and `tidyErrorMessage()` so that even *pre-existing*
+   database rows containing a bare `…started:` still render as a full sentence.
+   Verified by `tests/test_diagnostics.py` (19 tests) plus an end-to-end simulation with
+   `PLAYWRIGHT_BROWSERS_PATH=/tmp/definitely-not-installed`: task → `FAILED`, stored error 402 chars,
+   no trailing colon, names the cause, ends with `Fix: python -m playwright install --with-deps chromium`,
+   timeline shows the error and the "no actions were executed" follow-up, and **no** spurious teardown event.
+   On this machine the same code path found 12 genuinely missing system libraries
+   (`libXdamage.so.1`, `libasound.so.2`, `libatk…`, `libnss3.so`, …) and the recommended
+   `sudo python3 -m playwright install-deps chromium` fixed it — re-check `ok: True`, launch test 997 ms.
+
+   Lesson for future sessions: **never interpolate an exception into a user-facing string** — Playwright (and
+   much of the stdlib) can raise with an empty message. Route every driver error through
+   `describe_exception()`; it is the only place that guarantees non-empty, actionable text.
 
 ---
 

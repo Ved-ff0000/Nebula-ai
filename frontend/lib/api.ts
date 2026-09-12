@@ -4,8 +4,8 @@
  * to the FastAPI backend, so no CORS or token leakage across origins.
  */
 import type {
-  ActivityItem, AgentInfo, AllowlistInfo, Approval, BrowserState, Task,
-  TaskDetail, TaskEvent, User,
+  ActivityItem, AgentInfo, AllowlistInfo, Approval, BrowserDiagnostics,
+  BrowserLaunchTest, BrowserState, Task, TaskDetail, TaskEvent, User,
 } from "./types";
 
 const TOKEN_KEY = "nebula.token";
@@ -114,8 +114,15 @@ export const api = {
   activity: () => request<ActivityItem[]>("/api/tasks/activity"),
   agentInfo: () => request<AgentInfo>("/api/settings/agent", {}, false),
   allowlist: () => request<AllowlistInfo>("/api/settings/allowlist", {}, false),
-  health: () => request<{ status: string; llm_provider: string; browser_connected: boolean }>(
-    "/api/health", {}, false),
+  health: () => request<{
+    status: string;
+    llm_provider: string;
+    browser_connected: boolean;
+    browser?: { driver_running: boolean; environment_ok: boolean; installed: boolean;
+                problem: string | null; remedy: string | null };
+  }>("/api/health", {}, false),
+  browserDiagnostics: () => request<BrowserDiagnostics>("/api/health/browser", {}, false),
+  testBrowser: () => request<BrowserLaunchTest>("/api/health/browser/test", { method: "POST" }, false),
 };
 
 export function websocketUrl(taskId: string): string {

@@ -94,7 +94,8 @@ export function BrowserPanel({ taskId, status, initial }:
                 <p className="text-sm text-slate-300">No live browser session</p>
                 <p className="max-w-sm text-xs text-slate-500">
                   A sandboxed browser session is created when the task starts and destroyed when it ends.
-                  Start the task to see the live frame here.
+                  Start the task to see the live frame here. If a task fails with “Browser unavailable”,
+                  that page shows the exact command to fix this machine.
                 </p>
               </>
             ) : browserOffline && hasFrame ? (

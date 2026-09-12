@@ -104,4 +104,31 @@ export interface AllowlistInfo {
   note: string;
 }
 
-export type StreamState = "connecting" | "live" | "polling" | "offline";
+export type StreamState = "connecting" | "live" | "polling" | "offline" | "ended";
+
+/** Browser preflight report from GET /api/health/browser. */
+export interface BrowserDiagnostics {
+  ok: boolean;
+  platform: string;
+  python: string;
+  playwright_installed: boolean;
+  playwright_version: string | null;
+  browser_installed: boolean;
+  browser_dirs: string[];
+  executable_path: string | null;
+  missing_system_libs: string[];
+  headless_configured: boolean;
+  last_launch_error: string | null;
+  last_launch_error_type: string | null;
+  problem: string | null;
+  remedy: string | null;
+}
+
+export interface BrowserLaunchTest {
+  launched: boolean;
+  loaded_page: boolean;
+  duration_ms: number | null;
+  error: string | null;
+  error_type: string | null;
+  remedy: string | null;
+}

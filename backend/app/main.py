@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from app.agent.llm.base import LLMError
 from app.api import auth as auth_api
 from app.api import tasks as tasks_api
+from app.browser.diagnostics import check_browser_environment
 from app.browser.worker import browser_worker
 from app.config import settings
 from app.database.db import init_db
@@ -60,17 +61,50 @@ async def llm_error_handler(request: Request, exc: LLMError):
 
 @app.get("/api/health", tags=["health"])
 async def health():
+    """Liveness + browser environment readiness (fast: never launches a browser)."""
     try:
-        browser_ok = browser_worker._browser is not None and browser_worker._browser.is_connected()
+        driver_up = browser_worker._browser is not None and browser_worker._browser.is_connected()
     except Exception:
-        browser_ok = False
+        driver_up = False
+    diag = check_browser_environment(browser_worker.last_launch_error,
+                                     browser_worker.last_launch_error_type)
     return {
         "status": "ok",
         "service": "nebula-backend",
         "version": settings.version,
         "llm_provider": settings.llm_provider,
-        "browser_connected": browser_ok,
+        # kept for backwards compatibility with existing clients
+        "browser_connected": driver_up,
+        "browser": {
+            "driver_running": driver_up,
+            "environment_ok": diag.ok,
+            "installed": diag.browser_installed,
+            "problem": diag.problem,
+            "remedy": diag.remedy,
+        },
     }
+
+
+@app.get("/api/health/browser", tags=["health"])
+async def browser_diagnostics():
+    """Full browser preflight: interpreter, Playwright package, downloaded
+    binaries, OS shared libraries and the last launch failure. Does not launch."""
+    diag = check_browser_environment(browser_worker.last_launch_error,
+                                     browser_worker.last_launch_error_type)
+    return diag.to_dict()
+
+
+@app.post("/api/health/browser/test", tags=["health"])
+async def browser_launch_test():
+    """Actually launch Chromium and load a page — the definitive check.
+    Returns the precise error and fix command when it fails."""
+    from app.browser.diagnostics import run_launch_test
+    result = await run_launch_test()
+    if not result["launched"]:
+        # remember it so /api/health and task failures can explain the cause
+        browser_worker.last_launch_error = result.get("error")
+        browser_worker.last_launch_error_type = result.get("error_type")
+    return result
 
 
 @app.get("/api/settings/agent", tags=["settings"])

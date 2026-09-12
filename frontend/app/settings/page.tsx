@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import type { AgentInfo, AllowlistInfo } from "@/lib/types";
+import type { AgentInfo, AllowlistInfo, BrowserDiagnostics } from "@/lib/types";
 import { Chip, Panel, SectionTitle } from "@/components/ui";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -10,12 +10,18 @@ export default function SettingsPage() {
   const { theme, toggle } = useTheme();
   const [info, setInfo] = useState<AgentInfo | null>(null);
   const [allow, setAllow] = useState<AllowlistInfo | null>(null);
-  const [health, setHealth] = useState<{ browser_connected: boolean; llm_provider: string } | null>(null);
+  const [health, setHealth] = useState<{
+    browser_connected: boolean; llm_provider: string;
+    browser?: { driver_running: boolean; environment_ok: boolean; installed: boolean;
+                problem: string | null; remedy: string | null };
+  } | null>(null);
+  const [diag, setDiag] = useState<BrowserDiagnostics | null>(null);
 
   useEffect(() => {
     api.agentInfo().then(setInfo).catch(() => {});
     api.allowlist().then(setAllow).catch(() => {});
     api.health().then(setHealth).catch(() => {});
+    api.browserDiagnostics().then(setDiag).catch(() => {});
   }, []);
 
   return (
@@ -43,11 +49,34 @@ export default function SettingsPage() {
         </Panel>
 
         <Panel className="p-5">
-          <SectionTitle right={<Chip tone={health?.browser_connected ? "good" : "idle"}>
-            {health?.browser_connected ? "browser connected" : "browser idle"}
-          </Chip>}>
+          <SectionTitle right={
+            <Chip tone={diag ? (diag.ok ? "good" : "bad") : "idle"}>
+              {diag
+                ? diag.ok
+                  ? health?.browser_connected ? "browser running" : "browser ready"
+                  : "browser not ready"
+                : "checking…"}
+            </Chip>
+          }>
             Agent runtime
           </SectionTitle>
+
+          {diag && !diag.ok && (
+            <div className="mb-4 rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-3">
+              <p className="text-[12px] text-rose-100">{diag.problem}</p>
+              {diag.remedy && (
+                <div className="mt-2 flex items-center gap-2">
+                  <code className="flex-1 overflow-x-auto rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-[11px] text-emerald-200">
+                    {diag.remedy}
+                  </code>
+                </div>
+              )}
+              <p className="mt-2 text-[11px] text-rose-200/80">
+                Run that command, then start a task again — or use the diagnostics panel on a failed
+                task page to re-test the browser in place.
+              </p>
+            </div>
+          )}
           <dl className="grid gap-3 text-[12px] sm:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
               <dt className="text-slate-400">LLM provider</dt>
@@ -71,6 +100,12 @@ export default function SettingsPage() {
               <dt className="text-slate-400">Step timeout</dt>
               <dd className="mt-1 font-mono text-slate-100">
                 {info ? `${info.limits.step_timeout_seconds}s` : "…"}
+              </dd>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+              <dt className="text-slate-400">Chromium binary</dt>
+              <dd className={`mt-1 font-mono ${diag?.browser_installed ? "text-slate-100" : "text-rose-300"}`}>
+                {diag ? (diag.browser_installed ? "found" : "not found") : "…"}
               </dd>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
