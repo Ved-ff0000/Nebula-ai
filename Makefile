@@ -1,8 +1,25 @@
 # NEBULA — developer shortcuts
-.PHONY: help install backend frontend test test-backend test-frontend typecheck build lint docker-up docker-down clean
+.PHONY: help install backend frontend test test-backend test-frontend typecheck build lint docker-up docker-down clean verify-tracked
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+verify-tracked: ## Fail if any source file on disk is untracked (guards .gitignore mistakes)
+	@tmp=$${TMPDIR:-/tmp}/nebula-tracked-check.$$$$; \
+	find . -type f -not -path './.git/*' -not -path '*/node_modules/*' -not -path '*/.next/*' \
+	  -not -path '*/__pycache__/*' -not -path './backend/data/*' -not -path '*/.pytest_cache/*' \
+	  -not -name '*.pyc' -not -name '*.tsbuildinfo' -not -name 'next-env.d.ts' \
+	  | sed 's|^\./||' | sort > $$tmp.ondisk; \
+	git ls-files | sort > $$tmp.tracked; \
+	missing=$$(comm -23 $$tmp.ondisk $$tmp.tracked); \
+	if [ -n "$$missing" ]; then \
+	  echo "✗ source files exist on disk but are NOT tracked (check .gitignore):"; \
+	  echo "$$missing" | sed 's/^/    /'; \
+	  rm -f $$tmp.ondisk $$tmp.tracked; exit 1; \
+	else \
+	  echo "✓ every source file is tracked by git"; \
+	  rm -f $$tmp.ondisk $$tmp.tracked; \
+	fi
 
 install: ## Install backend (pip) and frontend (npm) dependencies
 	cd backend && pip install -r requirements.txt && python -m playwright install chromium
