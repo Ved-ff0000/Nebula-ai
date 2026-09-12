@@ -1,0 +1,67 @@
+# NEBULA V1 — full stack
+#   frontend (Next.js, port 3000) → proxies /api + /ws to backend
+#   backend  (FastAPI + Playwright Chromium worker, port 8000)
+#   db       (PostgreSQL 16, persisted volume)
+#
+#   docker compose up --build
+#   open http://localhost:3000   (demo account: demo@nebula.ai / nebula-demo-2024)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nebula
+      POSTGRES_PASSWORD: nebula
+      POSTGRES_DB: nebula
+    volumes:
+      - nebula_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nebula -d nebula"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      NEBULA_DATABASE_URL: postgresql+psycopg2://nebula:nebula@db:5432/nebula
+      NEBULA_ENVIRONMENT: production
+      NEBULA_JWT_SECRET: ${NEBULA_JWT_SECRET:-please-change-this-production-secret-0123456789}
+      NEBULA_ALLOWED_DOMAINS: '["localhost","127.0.0.1","example.com","en.wikipedia.org"]'
+      NEBULA_DEMO_SITE_ORIGIN: http://backend:8000
+      NEBULA_LLM_PROVIDER: ${NEBULA_LLM_PROVIDER:-heuristic}
+      NEBULA_OPENAI_API_KEY: ${NEBULA_OPENAI_API_KEY:-}
+      NEBULA_ANTHROPIC_API_KEY: ${NEBULA_ANTHROPIC_API_KEY:-}
+      NEBULA_MAX_STEPS: ${NEBULA_MAX_STEPS:-25}
+      NEBULA_MAX_TASK_MINUTES: ${NEBULA_MAX_TASK_MINUTES:-10}
+      NEBULA_BROWSER_HEADLESS: "true"
+      NEBULA_CORS_ORIGINS: '["http://localhost:3000"]'
+    # Playwright + Chromium benefit from a larger shm and no seccomp surprises
+    shm_size: "1gb"
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"   # expose only if you want the API/demo site directly
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    environment:
+      BACKEND_URL: http://backend:8000
+      PORT: "3000"
+      NODE_ENV: production
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  nebula_pgdata:

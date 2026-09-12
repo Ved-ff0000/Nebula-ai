@@ -1,0 +1,192 @@
+# NEBULA — Build Status
+
+**Read this file first** if you are continuing work with another AI coding agent. Update it before
+you end a session. Never rewrite working components unnecessarily — continue from this state.
+
+Last updated: 2026-09-12 · Version: **V1.0.0 (complete)**
+
+---
+
+## 1. Current phase
+
+**Phase 7 — complete.** All seven phases of the master specification are implemented, tested and
+documented. The project is runnable end-to-end locally and via Docker.
+
+| Phase | Scope | State |
+| --- | --- | --- |
+| 1 | Architecture + frontend shell | ✅ |
+| 2 | Backend + database | ✅ |
+| 3 | Browser automation (Playwright/Chromium) | ✅ |
+| 4 | Agent loop (state machine, tools, verification) | ✅ |
+| 5 | Security + approval system | ✅ |
+| 6 | Real-time activity + task history | ✅ |
+| 7 | Testing, Docker, docs, polish | ✅ |
+
+---
+
+## 2. Completed features
+
+**Agent runtime** — natural-language goals · task planning · observe→reason→plan→act→verify loop ·
+state machine (`CREATED, PLANNING, RUNNING, WAITING_FOR_APPROVAL, VERIFYING, COMPLETED, FAILED,
+CANCELLED, BLOCKED`) · bounded retries · step/time/approval limits · kill switch.
+
+**Browser** — Playwright + Chromium · isolated context per task · DOM/a11y element enumeration with
+stable refs · bounded text + element counts · screenshots for visual context · live preview ·
+guaranteed cleanup · downloads blocked · no host filesystem/shell access.
+
+**Tools (the complete surface)** — `navigate, go_back, read_page, screenshot, click, type, scroll,
+wait_for_load`. Each validates arguments (Pydantic), passes policy, enforces timeout, returns
+structured results and emits an audited event.
+
+**Security** — risk engine with final authority (LOW/MEDIUM/HIGH/BLOCKED) · explicit domain
+allowlist (global + per-task) with URL normalisation · prompt-injection scanner + untrusted-content
+labelling + auto-pause on high confidence · permanently blocked capability set.
+
+**Human control** — approval cards (exact action, origin, payload, reason) · Approve once / Reject /
+Stop · single-action semantics · pause / resume / stop · approvals persisted with reviewer notes.
+
+**Verification** — navigation URL/origin, click DOM-delta, field read-back, scroll delta,
+completion evidence gate; no evidence ⇒ no success claim.
+
+**Persistence** — User, Task, TaskEvent, TaskApproval, TaskDomain, TaskResult (SQLAlchemy;
+PostgreSQL in Docker, SQLite locally). No sensitive data stored.
+
+**Real time** — `/ws/tasks/{id}` broadcasting status/events/approvals with task-scoped connections,
+dead-client cleanup, and a client that falls back to polling and replays the timeline on reconnect.
+
+**Frontend** — premium dark-first control centre with light theme: home/hero + composer +
+suggestions, split-screen task workspace (live browser panel, progress, activity/security/approvals/
+domains tabs, result card), task history with search + filters, activity feed, settings, login/
+register, collapsible sidebar + mobile drawer, polished error/security states, responsive layouts.
+
+**Ops** — Dockerfiles (Playwright base for the worker, multi-stage Next build for the UI),
+docker-compose (db + backend + frontend), healthchecks, `.env.example`, Makefile, this file,
+README, ARCHITECTURE, SECURITY.
+
+**Deterministic demo site** (served by the backend) — `/demo/`, `/demo/internships`,
+`/demo/feedback` (+submit/success), `/demo/injection`.
+
+---
+
+## 3. File inventory (created this build)
+
+```
+nebula/
+├── README.md · Makefile · docker-compose.yml · .env.example
+├── docs/ARCHITECTURE.md · docs/SECURITY.md · docs/BUILD_STATUS.md
+├── docker/backend.Dockerfile · docker/frontend.Dockerfile
+├── backend/
+│   ├── requirements.txt · pytest.ini
+│   ├── app/main.py · app/config.py
+│   ├── app/api/{auth,tasks,schemas}.py
+│   ├── app/agent/{orchestrator,control}.py
+│   ├── app/agent/llm/{base,heuristic,providers}.py
+│   ├── app/browser/{worker,tools,observation,verification}.py
+│   ├── app/security/{policy,allowlist,injection}.py
+│   ├── app/database/{db,models}.py
+│   ├── app/websocket/manager.py
+│   ├── app/services/{events,demo_site,seed}.py
+│   └── tests/{conftest,test_security_policy,test_api,test_agent_e2e}.py
+└── frontend/
+    ├── package.json · tsconfig.json · next.config.mjs · tailwind.config.ts · postcss.config.mjs
+    ├── vitest.config.ts · .eslintrc.json · server.js
+    ├── app/{layout,page,globals.css} · app/login · app/tasks · app/tasks/[id] · app/activity · app/settings
+    ├── components/{AppShell,TaskComposer,BrowserPanel,ActivityTimeline,ApprovalCard,ResultCard,StateMessage,Toast,NebulaLogo,ui}.tsx
+    ├── hooks/{useTaskStream,useTheme}.ts(x) · lib/{api,types,format}.ts
+    ├── tests/{setup.ts,components.test.tsx} · public/{robots.txt,.gitkeep}
+```
+
+---
+
+## 4. Commands already run (and their results)
+
+| Command | Result |
+| --- | --- |
+| `pip install -r backend/requirements.txt` (+ `python-multipart`, `email-validator`, `pytest-asyncio`) | ok |
+| `python -m playwright install chromium` + system libs (`libnspr4`, `libnss3`, …) | ok — Chromium launches, screenshots captured |
+| `python -m pytest` (backend) | **37 passed** (13 policy/security, 19 API, 5 real-browser E2E) |
+| `npx tsc --noEmit` (frontend) | **clean** |
+| `npx vitest run` (frontend) | **13 passed** |
+| `npx next build` | **success** (6 routes + dynamic task route) |
+| Live run: uvicorn :8000 + node server.js :3000 (dev) | login, task creation, browser automation, approvals verified through the proxy |
+| Demo task (internships research) | `COMPLETED`, correct best-match role, evidence recorded |
+
+---
+
+## 5. Post-build hardening pass (bugs found by running the real stack)
+
+Fixed during visual QA of the live system (screenshots in `docs/screenshots/`):
+
+1. **`server.js` upgrade path** — Next's internal WS upgrade was being routed through `getRequestHandler()`,
+   producing `this.getHeader is not a function` / `Cannot read properties of undefined (reading 'bind')`
+   on every request. Now uses `app.getUpgradeHandler()`. Consequence: clean logs and a stable dev server.
+2. **Final browser frame** — finished tasks returned `available:false` with no frame, so the workspace
+   looked empty after completion. `BrowserWorker` now keeps the last observed URL/title/frame in a bounded
+   in-memory cache (`FINAL_FRAME_CACHE = 12`, never written to disk) and `/browser` returns it with
+   `status="closed"`; the panel shows it dimmed with a "session closed" chip.
+3. **Browser state fetch** — `useTaskStream` only fetched `/browser` for active tasks; now fetched for all
+   statuses (transient failures keep the previous frame instead of clearing it).
+4. **Approval wording** — approvals showed the raw element ref (`Click 'Submit form e3'`). The policy engine
+   now prioritises the visible label and the heuristic passes the real button text, so the card reads
+   `Clicking 'Submit feedback'…` with the control's actual name.
+5. **Icon rendering** — emoji suggestion-card icons rendered as tofu boxes on systems without emoji fonts.
+   Replaced with an original inline SVG icon set (`components/icons.tsx`) across the composer, timeline,
+   approval card, result card, browser panel, nav and task controls.
+6. **Findings quality** — listing extraction now filters badge/meta rows (`Hyderabad · Hybrid ₹30,000/mo…`)
+   so the result card's findings read as sentences (`_is_prose`).
+
+---
+
+## 6. Known bugs / open items
+
+None blocking. Quality items intentionally left:
+
+1. **Heuristic provider is scenario-aware** (research/compare, form+approval, read/inspect) — other
+   goals work generically. Configure `openai`/`anthropic` for open-ended goals.
+2. **Playwright Node E2E for the UI** is not wired: the browser-level E2E suite is the pytest one
+   (real Chromium, real server); the UI is covered by vitest component tests, typecheck and build.
+   Adding `@playwright/test` requires downloading a second browser in CI (`npx playwright install chromium`).
+3. **WS auth is task-scoped and read-only.** Production hardening: set `NEBULA_WS_AUTH=strict`.
+4. `next lint` (eslint 8 + eslint-config-next 14) is configured but has not been executed in this
+   sandbox; the build and typecheck both pass. Run `npm run lint` once before shipping.
+5. Browser worker is a singleton per process: concurrency is bounded by one orchestrator.
+
+---
+
+## 7. Next exact implementation steps (if continuing)
+
+1. `cd backend && python -m pytest` — confirm 37 green; `cd frontend && npm test && npm run typecheck && npm run build`.
+2. Run the demo (§README) in a real browser to exercise the live WS path instead of polling.
+3. Optional hardening tasks, in priority order:
+   a. WS token authentication (query param or first-frame auth) behind `NEBULA_WS_AUTH=strict`.
+   b. A task queue + worker pool (Redis) with per-user concurrency limits.
+   c. Approval *policies* (time-boxed, per-origin, scoped grants) with an admin view.
+   d. Structured extraction schemas for research tasks (typed findings instead of prose).
+   e. Playwright (@playwright/test) UI E2E in CI alongside the pytest suite.
+
+---
+
+## 8. Environment setup still required for a fresh machine
+
+| Requirement | Command |
+| --- | --- |
+| Python deps | `pip install -r backend/requirements.txt` (+ `psycopg2-binary` if using Postgres) |
+| Browser + system libs | `python -m playwright install --with-deps chromium` |
+| Node deps | `cd frontend && npm install` |
+| Config | `cp .env.example backend/.env` — set `NEBULA_JWT_SECRET`; optionally an LLM key |
+| Run (dev) | `make backend` and `make frontend` (or uvicorn + `npm run dev`) |
+| Run (docker) | `docker compose up --build` |
+| Demo login | `demo@nebula.ai` / `nebula-demo-2024` |
+
+---
+
+## 9. Architectural invariants (do not break these)
+
+1. The **policy engine** is the sole authority on whether an action executes; the model only proposes.
+2. BLOCKED capabilities must remain *absent code paths*, not just rejected branches.
+3. HIGH-risk actions pause **immediately before** execution and require a fresh, single-action decision.
+4. `COMPLETED` requires verification evidence; unverified outcomes must report as unverified.
+5. Page content is always untrusted data — labelled for the model, scanned for injection, never authority.
+6. The browser tool surface is exactly the eight audited tools; no shell, filesystem or JS escape hatch.
+7. Every state-changing event is persisted (audit trail) and broadcast (live stream).
+8. No sensitive data (credentials, card data, page bodies, screenshots) is written to the database.

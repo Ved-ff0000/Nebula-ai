@@ -1,0 +1,89 @@
+# ---------------------------------------------------------------------------
+# NEBULA — git ignore
+# ---------------------------------------------------------------------------
+
+# --- secrets & local config (NEVER commit) ---------------------------------
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+*.pem
+*.key
+
+# --- databases / runtime data ----------------------------------------------
+backend/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+.e2e-*.db*
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+
+# --- Node / Next.js --------------------------------------------------------
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+next-env.d.ts
+*.tsbuildinfo
+.npm/
+.npmrc
+.eslintcache
+coverage/
+
+# --- OS / editor -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*~
+\#*\#
+.\#*
+
+# --- logs ------------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-error.log*
+
+# --- docker ----------------------------------------------------------------
+data/postgres/
