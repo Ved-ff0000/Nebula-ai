@@ -135,6 +135,21 @@ Fixed during visual QA of the live system (screenshots in `docs/screenshots/`):
 6. **Findings quality** — listing extraction now filters badge/meta rows (`Hyderabad · Hybrid ₹30,000/mo…`)
    so the result card's findings read as sentences (`_is_prose`).
 
+7. **`.gitignore` swallowed `frontend/lib/`** (found by cloning the pushed repo and building it, i.e.
+   exactly what a new contributor does — *not* by any test in this repo). The Python-template line
+   `lib/` is a *bare* pattern, so git matched it at every depth and silently dropped
+   `frontend/lib/{api,types,format}.ts` from the commit; a fresh clone then failed with
+   `Module not found: Can't resolve '@/lib/api'` and `GET / 500`.
+   Fixes: every Python-template directory pattern is now **anchored** (`/lib/`, `/build/`, `/dist/`,
+   `/var/`, `/parts/`, `/sdist/`, `/wheels/`, `/eggs/`, `/downloads/`) and the file documents why;
+   an invalid inline comment was removed (gitignore has no inline-comment syntax — it had silently
+   disabled the `next-env.d.ts` rule); `make verify-tracked` was added and **fails the build if any
+   source file on disk is untracked**.
+   Lesson for future sessions: `pytest`/`vitest`/`tsc`/`next build` all run against the *working
+   directory*, so they cannot catch an incomplete push. Validate the artefact, not just the machine:
+   `git clone <repo> /tmp/v && (cd /tmp/v/frontend && npm ci && npm run build)` — or at minimum
+   `make verify-tracked` before pushing.
+
 ---
 
 ## 6. Known bugs / open items
