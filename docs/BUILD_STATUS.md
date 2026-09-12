@@ -197,6 +197,23 @@ Fixed during visual QA of the live system (screenshots in `docs/screenshots/`):
    invisible to `vitest`/`tsc`, since jsdom has no layout engine. Screenshots:
    `docs/screenshots/09-browser-unavailable-fix.png`, `docs/screenshots/10-settings-browser-environment.png`.
 
+10. **`requirements.txt` was incomplete — the pushed repo could not start at all** (found by the fresh-clone
+   acceptance check, *not* by any test in this repo). `backend/app/services/demo_site.py` declares
+   `name: str = Form("")` etc., and FastAPI raises **at import time** when `python-multipart` is absent —
+   so on a clean machine `python -m uvicorn app.main:app` and even `import app.main` failed, taking the
+   whole pytest suite with it. `pytest-asyncio` was missing too, so `pytest.ini`'s `asyncio_mode = auto`
+   silently degraded: async tests could not be collected (the suite would have run without pytest-asyncio
+   installed in the sandbox, masking it).
+   Both are now pinned in `backend/requirements.txt` with the reason recorded inline. The codebase uses
+   SQLAlchemy's **synchronous** engine over stdlib `sqlite3` — `aiosqlite`/`asyncpg` are *not* used
+   anywhere (and `psycopg2-binary` remains Docker-only); the comment says so, to stop anyone "fixing"
+   a phantom async-driver gap.
+   Lesson for future sessions: the sandbox's **globally installed packages mask missing dependencies** —
+   `pytest`, `tsc` and `next build` can all be green while the published artefact cannot boot. The only
+   honest check is a clean environment:
+   `python -m venv .venv && .venv/bin/pip install -r backend/requirements.txt && .venv/bin/python -c "import app.main"`
+   followed by `.venv/bin/python -m pytest` — run it inside a fresh `git clone` of the pushed repo.
+
 ---
 
 ## 6. Known bugs / open items
