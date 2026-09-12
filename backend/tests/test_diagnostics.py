@@ -61,6 +61,20 @@ def test_describe_exception_strips_playwright_box_art():
     assert text.count("\n") <= 6          # stays card-sized
 
 
+def test_describe_exception_drops_the_playwright_signature_inside_the_box():
+    """The sign-off sits *inside* the box, so it cannot be matched on the raw
+    line — it must be matched after the borders are stripped."""
+    raw = (
+        "BrowserType.launch: Executable doesn't exist\n"
+        "\u2551     playwright install                                     \u2551\n"
+        "\u2551 <3 Playwright Team                                         \u2551"
+    )
+    text = describe_exception(Exception(raw))
+    assert "<3" not in text
+    assert "playwright install" in text
+    assert "." not in text.splitlines()[-1].replace("install", "")  # no stray punctuation
+
+
 def test_describe_exception_truncates_absurdly_long_output():
     text = describe_exception(Exception("x" * 5000))
     assert len(text) < 700 and text.endswith("\u2026")

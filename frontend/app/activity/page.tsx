@@ -36,7 +36,7 @@ export default function ActivityPage() {
       </header>
 
       <Panel className="p-4">
-        <div className="mb-4 flex flex-wrap gap-1">
+        <div className="mb-4 flex flex-wrap items-start gap-1">
           {(["all", "action", "security", "approval"] as const).map((f) => (
             <button
               key={f}

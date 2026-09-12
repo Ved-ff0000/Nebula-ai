@@ -12,6 +12,7 @@ verify-tracked: ## Fail if any source file on disk is untracked (guards .gitigno
 	find . -type f -not -path './.git/*' -not -path '*/node_modules/*' -not -path '*/.next/*' \
 	  -not -path '*/__pycache__/*' -not -path './backend/data/*' -not -path '*/.pytest_cache/*' \
 	  -not -name '*.pyc' -not -name '*.tsbuildinfo' -not -name 'next-env.d.ts' \
+	  -not -name '*.db' -not -name '*.db-journal' -not -name '*.sqlite*' -not -name '*.log' \
 	  | sed 's|^\./||' | sort > $$tmp.ondisk; \
 	git ls-files | sort > $$tmp.tracked; \
 	missing=$$(comm -23 $$tmp.ondisk $$tmp.tracked); \

@@ -60,6 +60,14 @@ def server():
         proc.wait(timeout=10)
     except subprocess.TimeoutExpired:
         proc.kill()
+    # leave no artifacts behind: the transient DB would otherwise show up as an
+    # untracked file in `make verify-tracked`.
+    for f in os.listdir(BACKEND_DIR):
+        if f.startswith(".e2e-"):
+            try:
+                os.remove(os.path.join(BACKEND_DIR, f))
+            except OSError:
+                pass
 
 
 async def _token(base: str) -> str:

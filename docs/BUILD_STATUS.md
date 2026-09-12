@@ -185,6 +185,18 @@ Fixed during visual QA of the live system (screenshots in `docs/screenshots/`):
    much of the stdlib) can raise with an empty message. Route every driver error through
    `describe_exception()`; it is the only place that guarantees non-empty, actionable text.
 
+9. **Stat chips rendered as huge circles** (spotted in the screenshot of the fix for item 8 — the
+   `elapsed / retries / origins` pills overlapped the progress bar). Cause: the pills live in a
+   `<div class="flex flex-wrap gap-2">` that is itself a *grid cell*, so `align-items: stretch` made every
+   `.chip` as tall as the cell (~86 px); with `rounded-full` an 86 px-tall pill is a circle.
+   Fixed at both ends: `items-start` on all five chip rows (`app/tasks/[id]/page.tsx`, `app/tasks/page.tsx`,
+   `app/activity/page.tsx`, `app/settings/page.tsx`, `components/ApprovalCard.tsx`) **and** the `.chip`
+   utility now sets `h-fit w-fit self-start`, so a future container cannot reintroduce it.
+   Verified by measuring computed geometry in a real browser (`getBoundingClientRect().height > 40` on
+   every `.chip`) across `/tasks/[id]`, `/tasks`, `/activity` and `/settings` — this class of bug is
+   invisible to `vitest`/`tsc`, since jsdom has no layout engine. Screenshots:
+   `docs/screenshots/09-browser-unavailable-fix.png`, `docs/screenshots/10-settings-browser-environment.png`.
+
 ---
 
 ## 6. Known bugs / open items

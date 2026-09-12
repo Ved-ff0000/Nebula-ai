@@ -55,7 +55,7 @@ export default function TasksPage() {
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search tasks"
           />
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-start gap-1">
             {FILTERS.map((f) => (
               <button
                 key={f}

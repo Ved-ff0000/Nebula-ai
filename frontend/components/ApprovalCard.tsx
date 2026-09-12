@@ -65,7 +65,7 @@ export function ApprovalCard({
             />
           </label>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap items-start gap-2">
             <button className="btn-success" disabled={busy} onClick={() => onApprove(reason)}>
               <IconCheck size={15} /> Approve once
             </button>

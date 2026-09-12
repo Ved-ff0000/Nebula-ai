@@ -127,9 +127,11 @@ def _sanitise(text: str, limit: int = 600) -> str:
             continue
         if len(stripped) > 3 and sum(c in _BOX_CHARS for c in stripped) / len(stripped) > 0.4:
             continue                      # a box-drawing border line
-        if stripped.lower().startswith("<3 "):   # "…<3 Playwright Team" signature
+        content = stripped.strip("".join(_BOX_CHARS) + " ").strip()   # unbox "║ text ║"
+        if content.lower().startswith("<3 "):        # Playwright's sign-off line
             continue
-        kept.append(stripped.strip("║ ").strip())
+        if content:
+            kept.append(content)
     out = "\n".join(kept).strip()
     out = "\n".join(line for line in out.splitlines() if line)
     return (out[: limit - 1] + "…") if len(out) > limit else out

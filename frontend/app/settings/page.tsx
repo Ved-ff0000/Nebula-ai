@@ -124,7 +124,7 @@ export default function SettingsPage() {
 
         <Panel className="p-5">
           <SectionTitle>Domain allowlist</SectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             {(allow?.global_domains ?? []).map((d) => (
               <Chip key={d} tone="active">{d}</Chip>
             ))}

@@ -149,7 +149,7 @@ export default function TaskWorkspacePage() {
               {task.plan_summary || "Waiting for the plan…"}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 text-[11px]">
+          <div className="flex flex-wrap items-start gap-2 text-[11px]">
             <Chip>elapsed {durationFrom(task.started_at, task.completed_at)}</Chip>
             <Chip>retries {task.retry_count}</Chip>
             <Chip>{task.domains.length} origin{task.domains.length === 1 ? "" : "s"}</Chip>
