@@ -114,7 +114,39 @@ export default function SettingsPage() {
                 {info ? `${info.limits.approval_timeout_seconds}s` : "…"}
               </dd>
             </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+              <dt className="text-slate-400">Backend build</dt>
+              <dd className="mt-1 font-mono text-slate-100">
+                {diag?.build ? (
+                  <>
+                    {diag.build.commit}
+                    {diag.build.dirty && <span className="text-amber-300"> + uncommitted</span>}
+                    <span className="text-slate-500"> · diagnostics rev {diag.build.diagnostics_revision}</span>
+                  </>
+                ) : diag ? (
+                  <span className="text-amber-300">unknown (older backend)</span>
+                ) : (
+                  "…"
+                )}
+              </dd>
+            </div>
           </dl>
+
+          {diag && !diag.build?.features?.includes("actionable_launch_errors") && (
+            <div className="mt-3 rounded-xl border border-amber-400/35 bg-amber-500/[0.08] p-3 text-[12px] text-amber-100">
+              <p className="font-semibold">This backend is older than the diagnostics fix</p>
+              <p className="mt-1 leading-relaxed">
+                The running process does not report its build identity, so it predates the actionable
+                browser-launch errors. Tasks that fail to start a browser on this build can show an empty
+                reason (for example <span className="font-mono">Browser could not be started:</span> with
+                nothing after the colon). Update the code, then <strong>restart the backend</strong> —
+                restarting the process is what loads the new code.
+              </p>
+              <p className="mt-1 font-mono text-[11px] opacity-90">
+                git pull &amp;&amp; (docker compose up -d --build | restart uvicorn)
+              </p>
+            </div>
+          )}
           <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
             Configure these with environment variables on the backend (NEBULA_LLM_PROVIDER,
             NEBULA_MAX_STEPS, NEBULA_MAX_TASK_MINUTES, NEBULA_STEP_TIMEOUT_SECONDS, …). API keys are

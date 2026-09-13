@@ -1,7 +1,7 @@
 "use client";
 
 import type { TaskEvent } from "@/lib/types";
-import { clockTime, ms, originOf } from "@/lib/format";
+import { clockTime, humaniseLegacyMessage, ms, originOf } from "@/lib/format";
 import { Chip, EmptyState } from "./ui";
 import {
   IconActivity, IconArrowRight, IconCheck, IconDot, IconFlag, IconPlan,
@@ -55,7 +55,7 @@ export function ActivityTimeline({ events, dense = false }: { events: TaskEvent[
               <EventGlyph type={e.type} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] leading-snug text-slate-200">{e.summary}</p>
+              <p className="text-[13px] leading-snug text-slate-200">{humaniseLegacyMessage(e.summary)}</p>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
                 <span className="font-mono">{clockTime(e.timestamp)}</span>
                 <span className="uppercase tracking-[0.18em]">{e.type}</span>

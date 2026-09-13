@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { humaniseLegacyMessage } from "@/lib/format";
 import type { BrowserDiagnostics, TaskDetail } from "@/lib/types";
 import { IconCheck, IconWarn } from "./icons";
 
@@ -23,8 +24,11 @@ interface StateCopy {
 export function tidyErrorMessage(raw: string | null | undefined): string {
   const text = (raw ?? "").trim();
   if (!text) return "The task stopped before it could finish, and no further detail was recorded.";
-  if (/[:\-—]\s*$/.test(text) || /could not be started\s*$/i.test(text)) {
-    return `${text.replace(/[:\-—]\s*$/, "")} — the browser driver returned no detail message. See the diagnostics below.`;
+  if (humaniseLegacyMessage(text) !== text) {
+    // Legacy row written by a pre-fix backend: keep the sentence it did record,
+    // then say plainly what is missing and where this machine's diagnostics are.
+    return `${text.replace(/[\s:：]+$/, "")} — the browser driver returned no detail message. `
+      + "Diagnostics for this machine are below.";
   }
   return text;
 }
@@ -216,6 +220,15 @@ function BrowserFixPanel() {
           {healthy && (
             <p className="mt-2 flex items-center gap-2 text-[12px] text-emerald-200">
               <IconCheck size={13} /> The browser environment is ready — start a new task to continue.
+            </p>
+          )}
+
+          {/* Which backend produced this card — a stale process was mistaken for
+              a regression once, so every failure screenshot now carries it. */}
+          {diag?.build && (
+            <p className="mt-2 font-mono text-[10px] text-slate-500">
+              backend build {diag.build.commit}
+              {diag.build.dirty ? " + uncommitted" : ""} · diagnostics rev {diag.build.diagnostics_revision}
             </p>
           )}
 

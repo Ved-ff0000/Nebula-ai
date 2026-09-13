@@ -178,6 +178,27 @@ describe("ActivityTimeline", () => {
     wrap(<ActivityTimeline events={[]} />);
     expect(screen.getByText(/no activity yet/i)).toBeInTheDocument();
   });
+
+  it("explains a legacy row whose reason was never recorded", () => {
+    // Rows written by a pre-fix backend: the driver message was empty, so the
+    // stored text is literally `Browser unavailable: Browser could not be started:`.
+    // The list must never render it bare.
+    wrap(<ActivityTimeline events={[
+      event({ id: "9", type: "error", status: "failed",
+              summary: "Browser unavailable: Browser could not be started:" }),
+    ]} />);
+    const text = document.body.textContent ?? "";
+    expect(text).not.toMatch(/could not be started:\s*$/m);
+    expect(text).toMatch(/reason was not recorded/i);
+    expect(text).toMatch(/older than the actionable-diagnostics fix/i);
+  });
+
+  it("leaves ordinary messages untouched", () => {
+    wrap(<ActivityTimeline events={[
+      event({ id: "10", summary: "Opened https://example.com and read the heading" }),
+    ]} />);
+    expect(screen.getByText("Opened https://example.com and read the heading")).toBeInTheDocument();
+  });
 });
 
 describe("StatusPill & security states", () => {

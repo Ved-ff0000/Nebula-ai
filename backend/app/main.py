@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from app.agent.llm.base import LLMError
 from app.api import auth as auth_api
 from app.api import tasks as tasks_api
+from app.build_info import build_info, one_line as build_one_line
 from app.browser.diagnostics import check_browser_environment
 from app.browser.worker import browser_worker
 from app.config import settings
@@ -28,7 +29,8 @@ log = logging.getLogger("nebula")
 async def lifespan(app: FastAPI):
     init_db()
     seed()
-    log.info("NEBULA V1 backend starting — LLM provider: %s", settings.llm_provider)
+    log.info("NEBULA V1 backend starting — LLM provider: %s — %s",
+             settings.llm_provider, build_one_line())
     yield
     await browser_worker.shutdown()
     log.info("NEBULA backend shut down cleanly")
@@ -73,6 +75,9 @@ async def health():
         "service": "nebula-backend",
         "version": settings.version,
         "llm_provider": settings.llm_provider,
+        # identity of the *running* process — a stale build was mistaken for a
+        # regression once, so the API states which code it is (see build_info.py)
+        "build": build_info(),
         # kept for backwards compatibility with existing clients
         "browser_connected": driver_up,
         "browser": {
@@ -91,7 +96,9 @@ async def browser_diagnostics():
     binaries, OS shared libraries and the last launch failure. Does not launch."""
     diag = check_browser_environment(browser_worker.last_launch_error,
                                      browser_worker.last_launch_error_type)
-    return diag.to_dict()
+    payload = diag.to_dict()
+    payload["build"] = build_info()
+    return payload
 
 
 @app.post("/api/health/browser/test", tags=["health"])

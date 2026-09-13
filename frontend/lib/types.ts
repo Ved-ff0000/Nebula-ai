@@ -107,6 +107,17 @@ export interface AllowlistInfo {
 export type StreamState = "connecting" | "live" | "polling" | "offline" | "ended";
 
 /** Browser preflight report from GET /api/health/browser. */
+/** Identity of the running backend process (see backend/app/build_info.py). */
+export interface BuildInfo {
+  commit: string;
+  dirty: boolean;
+  started_at: string;
+  uptime_seconds: number;
+  diagnostics_revision: number;
+  features: string[];
+  source: string;
+}
+
 export interface BrowserDiagnostics {
   ok: boolean;
   platform: string;
@@ -122,6 +133,8 @@ export interface BrowserDiagnostics {
   last_launch_error_type: string | null;
   problem: string | null;
   remedy: string | null;
+  /** absent on backends older than the diagnostics fix */
+  build?: BuildInfo;
 }
 
 export interface BrowserLaunchTest {

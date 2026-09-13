@@ -97,3 +97,38 @@ export function originOf(url: string): string {
 export function truncate(text: string, max = 140): string {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
+
+/**
+ * Legacy failure text written by backends older than the browser-diagnostics
+ * fix. Those messages could be literally `Browser unavailable: Browser could
+ * not be started:` — nothing after the colon — and they stay in the database
+ * forever, so the UI must not render them bare (see docs/BUILD_STATUS.md §5.8).
+ *
+ * Returns the text unchanged when it is fine, otherwise the same text with the
+ * missing detail spelled out and a note that the row predates the fix.
+ */
+export function humaniseLegacyMessage(text: string | null | undefined): string {
+  const raw = (text ?? "").trim();
+  if (!raw) return "";
+  const cutShort =
+    /(could not be started|could not start|failed to start)\s*[:：]?\s*$/i.test(raw) ||
+    /[:：]\s*$/.test(raw);
+  if (!cutShort) return raw;
+  const trimmed = raw.replace(/[\s:：]+$/, "");
+  const label = /browser could not|browser unavailable/i.test(trimmed) ? "Browser unavailable" : "";
+  return [
+    label && !/browser unavailable/i.test(trimmed) ? `${label}: ${trimmed}` : trimmed,
+    "The reason was not recorded — this entry was written by a backend build older than the "
+      + "actionable-diagnostics fix, which printed an empty message when the browser driver "
+      + "failed to start. Update to the current build and rerun the task; it will name the "
+      + "cause and the exact command that fixes it.",
+  ].join(" ");
+}
+
+/** True when a stored failure row came from a pre-diagnostics backend build. */
+export function looksLikeLegacyBrowserError(text: string | null | undefined): boolean {
+  const raw = (text ?? "").trim();
+  if (!raw) return false;
+  return /browser unavailable\s*[:：]\s*browser could not be started\s*[:：]?\s*$/i.test(raw)
+    || /(could not be started|failed to start)\s*[:：]?\s*$/i.test(raw);
+}

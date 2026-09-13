@@ -12,7 +12,7 @@ Last updated: 2026-09-12 · Version: **V1.0.0 (complete)**
 **Phase 7 — complete.** All seven phases of the master specification are implemented, tested and
 documented. The project is runnable end-to-end locally and via Docker.
 
-**Current test status:** backend `pytest` **56 passed** · frontend `vitest` **14 passed** ·
+**Current test status:** backend `pytest` **64 passed** · frontend `vitest` **16 passed** ·
 `tsc --noEmit` clean · `next build` succeeds. A browser-environment *doctor* is available:
 `make doctor` (or `python backend/scripts/diagnose.py --launch`).
 
@@ -213,6 +213,27 @@ Fixed during visual QA of the live system (screenshots in `docs/screenshots/`):
    honest check is a clean environment:
    `python -m venv .venv && .venv/bin/pip install -r backend/requirements.txt && .venv/bin/python -c "import app.main"`
    followed by `.venv/bin/python -m pytest` — run it inside a fresh `git clone` of the pushed repo.
+
+11. **"Still broken after the fix" — the fix had never been loaded** (user re-reported the exact same
+   truncated message *after* it was committed and pushed). Forensics: the reported task id `1b3d0897`
+   does not exist in this workspace's database, the timestamps (14:18/14:19) are outside every session,
+   and `grep -rn "could not be started"` in the shipped code shows exactly one raise site, emitting the
+   new format. Their uvicorn process was still running the previous build — a stale process, not a
+   regression. Nothing in the UI or API made that visible, which is the actual defect, so the backend now
+   identifies itself:
+   * `backend/app/build_info.py` — commit (`NEBULA_BUILD_COMMIT` env for Docker, else `git rev-parse`),
+     `dirty` flag, start time, uptime, `diagnostics_revision`, advertised `features[]`.
+   * `build` is included in `GET /api/health` and `GET /api/health/browser`, and the startup log now ends
+     with `build <sha> · diagnostics revision N · pid-started <iso>`.
+   * The settings page shows **Backend build** (with an amber "older backend" banner when the process does
+     not advertise `actionable_launch_errors`), and the browser-fix card prints its build under the
+     diagnosis, so any future screenshot carries the answer.
+   * Old rows written by a pre-fix build are permanent in the database, so the UI now *labels* them
+     instead of rendering them bare: `humaniseLegacyMessage()` in `lib/format.ts` (shared by the task
+     timeline, the activity page and `StateMessage`) keeps whatever was recorded and states plainly that
+     the entry predates the actionable-diagnostics fix.
+   Lesson for future sessions: when a user reports "still broken" after a fix, **first ask which code their
+   process is running** (`/api/health` → `build.commit`) — and make that question answerable from the UI.
 
 ---
 

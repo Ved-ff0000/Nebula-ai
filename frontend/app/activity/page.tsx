@@ -5,7 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import type { ActivityItem } from "@/lib/types";
 import { Chip, Panel, SectionTitle } from "@/components/ui";
-import { clockTime, EVENT_ICON, originOf, shortDate } from "@/lib/format";
+import { clockTime, EVENT_ICON, humaniseLegacyMessage, originOf, shortDate } from "@/lib/format";
 
 export default function ActivityPage() {
   const [items, setItems] = useState<ActivityItem[]>([]);
@@ -64,7 +64,7 @@ export default function ActivityPage() {
               <li key={`${item.task_id}-${idx}`} className="flex items-start gap-3 py-2.5">
                 <span className="mt-0.5 text-sm text-nebula-300" aria-hidden>{EVENT_ICON[item.type] ?? "•"}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] text-slate-200">{item.summary}</p>
+                  <p className="text-[13px] text-slate-200">{humaniseLegacyMessage(item.summary)}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
                     <span className="font-mono">{clockTime(item.timestamp)}</span>
                     <span>{shortDate(item.timestamp)}</span>
