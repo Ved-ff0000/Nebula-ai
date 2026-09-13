@@ -47,14 +47,14 @@ export function BrowserPanel({ taskId, status, initial }:
 
   return (
     <section className="panel flex min-h-[420px] flex-col overflow-hidden" aria-label="Browser preview">
-      <div className="flex flex-wrap items-center gap-2 border-b border-white/10 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--color-void-line)] px-4 py-3">
         <span className="flex gap-1.5" aria-hidden>
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-400/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[rgba(239,77,107,0.10)]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-warning-bg)]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-success-bg)]" />
         </span>
-        <div className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5">
-          <p className="truncate font-mono text-[11px] text-slate-300" title={state?.url || ""}>
+        <div className="min-w-0 flex-1 rounded-lg border border-[var(--color-void-line)] bg-black/30 px-3 py-1.5">
+          <p className="truncate font-mono text-[11px] text-[var(--color-ink-muted)]" title={state?.url || ""}>
             {state?.url || "about:blank"}
           </p>
         </div>
@@ -67,11 +67,11 @@ export function BrowserPanel({ taskId, status, initial }:
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 px-4 pt-3 text-[11px] text-slate-400">
+      <div className="flex flex-wrap items-center gap-2 px-4 pt-3 text-[11px] text-[var(--color-ink-muted)]">
         <Chip tone="active">{origin || "origin unknown"}</Chip>
         <span className="truncate">Isolated Chromium context · task-scoped · downloads blocked</span>
         {state?.updated_at && (
-          <span className="ml-auto font-mono text-[10px] text-slate-500">
+          <span className="ml-auto font-mono text-[10px] text-[var(--color-ink-faint)]">
             frame {clockTime(new Date(state.updated_at * 1000).toISOString())}
           </span>
         )}
@@ -84,15 +84,15 @@ export function BrowserPanel({ taskId, status, initial }:
             key={nonce}
             src={state.screenshot}
             alt="Live screenshot of the agent-controlled browser page"
-            className="max-h-[62vh] w-full animate-fade-up rounded-xl border border-white/10 object-contain shadow-panel"
+            className="max-h-[62vh] w-full animate-fade-up rounded-xl border border-[var(--color-void-line)] object-contain shadow-panel"
           />
         ) : (
           <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
             {browserOffline && !hasFrame ? (
               <>
-                <span className="text-slate-500" aria-hidden><IconWarn size={30} /></span>
-                <p className="text-sm text-slate-300">No live browser session</p>
-                <p className="max-w-sm text-xs text-slate-500">
+                <span className="text-[var(--color-ink-faint)]" aria-hidden><IconWarn size={30} /></span>
+                <p className="text-sm text-[var(--color-ink-muted)]">No live browser session</p>
+                <p className="max-w-sm text-xs text-[var(--color-ink-faint)]">
                   A sandboxed browser session is created when the task starts and destroyed when it ends.
                   Start the task to see the live frame here. If a task fails with “Browser unavailable”,
                   that page shows the exact command to fix this machine.
@@ -104,9 +104,9 @@ export function BrowserPanel({ taskId, status, initial }:
                 <img
                   src={state?.screenshot ?? ""}
                   alt="Final frame captured before the sandboxed browser session closed"
-                  className="max-h-[62vh] w-full rounded-xl border border-white/10 object-contain opacity-80 shadow-panel"
+                  className="max-h-[62vh] w-full rounded-xl border border-[var(--color-void-line)] object-contain opacity-80 shadow-panel"
                 />
-                <p className="mt-2 text-center text-[11px] text-slate-500">
+                <p className="mt-2 text-center text-[11px] text-[var(--color-ink-faint)]">
                   Session closed — showing the final frame the agent saw. Screenshots are never written to disk.
                 </p>
               </div>
@@ -117,14 +117,14 @@ export function BrowserPanel({ taskId, status, initial }:
         )}
         {state?.status === "loading" && !browserOffline && (
           <div className="absolute inset-x-0 top-0 h-0.5 overflow-hidden">
-            <div className="h-full w-1/3 animate-sweep bg-gradient-to-r from-nebula-500 to-plasma-400" />
+            <div className="h-full w-1/3 animate-sweep bg-gradient-to-r from-[var(--color-accent-500)] to-plasma-400" />
           </div>
         )}
       </div>
 
-      <div className="border-t border-white/10 px-4 py-3">
+      <div className="border-t border-[var(--color-void-line)] px-4 py-3">
         <SectionTitle>Page</SectionTitle>
-        <p className="truncate text-sm text-slate-300" title={state?.title || ""}>
+        <p className="truncate text-sm text-[var(--color-ink-muted)]" title={state?.title || ""}>
           {state?.title || "—"}
         </p>
       </div>

@@ -26,11 +26,11 @@ function EventGlyph({ type }: { type: string }) {
 }
 
 const TONE: Record<string, string> = {
-  info: "border-white/15 text-slate-300",
-  success: "border-emerald-400/40 text-emerald-300",
-  failed: "border-rose-400/40 text-rose-300",
-  warning: "border-amber-400/40 text-amber-300",
-  blocked: "border-rose-500/60 text-rose-200",
+  info: "border-white/15 text-[var(--color-ink-muted)]",
+  success: "border-[rgba(45,212,191,0.30)] text-[var(--color-success)]",
+  failed: "border-[rgba(239,77,107,0.30)] text-[var(--color-danger)]",
+  warning: "border-[rgba(245,185,79,0.30)] text-[var(--color-warning)]",
+  blocked: "border-[rgba(239,77,107,0.30)] text-[var(--color-danger)]",
 };
 
 /**
@@ -46,7 +46,7 @@ export function ActivityTimeline({ events, dense = false }: { events: TaskEvent[
   return (
     <ol className={`flex flex-col ${dense ? "gap-1.5" : "gap-2.5"}`} aria-label="Activity timeline">
       {ordered.map((e) => (
-        <li key={e.id} className="relative animate-fade-up rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+        <li key={e.id} className="relative animate-fade-up rounded-xl border border-[var(--color-void-line)] bg-[var(--color-void-soft)] px-3 py-2.5">
           <div className="flex items-start gap-2.5">
             <span
               className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg border ${TONE[e.status] ?? TONE.info}`}
@@ -55,8 +55,8 @@ export function ActivityTimeline({ events, dense = false }: { events: TaskEvent[
               <EventGlyph type={e.type} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] leading-snug text-slate-200">{humaniseLegacyMessage(e.summary)}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
+              <p className="text-[13px] leading-snug text-[var(--color-ink)]">{humaniseLegacyMessage(e.summary)}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[var(--color-ink-faint)]">
                 <span className="font-mono">{clockTime(e.timestamp)}</span>
                 <span className="uppercase tracking-[0.18em]">{e.type}</span>
                 {e.origin && <span className="truncate">{originOf(e.origin)}</span>}

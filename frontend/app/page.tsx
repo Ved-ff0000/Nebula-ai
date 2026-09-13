@@ -1,138 +1,159 @@
-"use client";
-
-import { useEffect, useState } from "react";
+/**
+ * Landing page. Cinematic, dark, restrained. The orbital field sits
+ * behind the hero; "Live Mission" plays a deterministic timeline so the
+ * demo is brand-safe and identical every time.
+ *
+ * Sections (in order):
+ *  1. Hero (orbital field + headline + CTAs)
+ *  2. Live Mission (scripted telemetry demo)
+ *  3. How It Works (Understand → Navigate → Complete)
+ *  4. The Web Is Your Universe (constellation map)
+ *  5. Built for Control (5 trust states)
+ *  6. Final CTA
+ */
+import { OrbitalField } from "@/components/marketing/OrbitalField";
+import { LiveMission } from "@/components/marketing/LiveMission";
+import { HowItWorks } from "@/components/marketing/HowItWorks";
+import { ConstellationMap } from "@/components/marketing/ConstellationMap";
+import { BuiltForControl } from "@/components/marketing/BuiltForControl";
+import { FinalCTA } from "@/components/marketing/FinalCTA";
 import Link from "next/link";
-import { api } from "@/lib/api";
-import { NebulaMark, NebulaWordmark } from "@/components/NebulaLogo";
-import { TaskComposer } from "@/components/TaskComposer";
-import { Chip, Panel, SectionTitle } from "@/components/ui";
-import type { AgentInfo, Task } from "@/lib/types";
-import { STATUS_LABEL, STATUS_TONE, timeAgo, truncate } from "@/lib/format";
+import { ArrowRight, Play } from "lucide-react";
 
-export default function HomePage() {
-  const [recent, setRecent] = useState<Task[]>([]);
-  const [info, setInfo] = useState<AgentInfo | null>(null);
-
-  useEffect(() => {
-    api.listTasks().then((t) => setRecent(t.slice(0, 4))).catch(() => {});
-    api.agentInfo().then(setInfo).catch(() => {});
-  }, []);
-
+export default function LandingPage() {
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-14">
-      <header className="flex flex-col items-center text-center">
-        <NebulaMark size={64} />
-        <h1 className="mt-4">
-          <NebulaWordmark className="block text-3xl text-white sm:text-4xl" />
-          <span className="mt-3 block text-xl font-light text-slate-300 sm:text-2xl">
-            Give the web a goal.
-          </span>
-        </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400">
-          NEBULA understands what you want to accomplish, navigates real websites in a sandboxed
-          browser, gathers information and performs permitted actions — while a risk engine reviews
-          every step and <span className="text-slate-200">you stay the final authority</span> for
-          consequential decisions.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <Chip tone="active">policy-checked actions</Chip>
-          <Chip tone="warn">approval before anything consequential</Chip>
-          <Chip tone="bad">credentials & payments blocked</Chip>
-          <Chip tone="good">evidence-verified results</Chip>
-        </div>
-      </header>
+    <main className="relative">
+      {/* ============================== HERO ============================== */}
+      <section className="relative overflow-hidden pt-28 pb-20">
+        <OrbitalField />
 
-      <div className="mt-8">
-        <TaskComposer autoFocus />
-      </div>
-
-      {recent.length > 0 && (
-        <section className="mt-12">
-          <SectionTitle
-            right={
-              <Link href="/tasks" className="text-[11px] text-nebula-300 hover:underline">
-                all tasks →
-              </Link>
-            }
-          >
-            Continue where you left off
-          </SectionTitle>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {recent.map((t) => (
-              <Link key={t.id} href={`/tasks/${t.id}`} className="panel block p-4 transition hover:border-nebula-400/40">
-                <div className="flex items-center justify-between gap-2">
-                  <Chip tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status]}</Chip>
-                  <span className="font-mono text-[10px] text-slate-500">{timeAgo(t.updated_at)}</span>
-                </div>
-                <p className="mt-2 text-sm text-slate-200">{truncate(t.goal, 120)}</p>
-                {t.domains.length > 0 && (
-                  <p className="mt-2 truncate font-mono text-[10px] text-slate-500">{t.domains.join(" · ")}</p>
-                )}
-              </Link>
-            ))}
+        <div className="relative mx-auto max-w-5xl px-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-void-line)] bg-[var(--color-void-soft)] px-3 py-1 text-[11px] tracking-[0.12em] text-muted">
+            <span className="size-1.5 rounded-full bg-[var(--color-success)]" />
+            MISSION CONTROL · V1
           </div>
-        </section>
-      )}
 
-      <section className="mt-12 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Panel className="p-5">
-          <SectionTitle>How NEBULA works</SectionTitle>
-          <ol className="flex flex-col gap-3 text-[13px] text-slate-300">
-            {[
-              ["Plan", "Your goal becomes a short, inspectable plan — no hidden reasoning is ever shown."],
-              ["Observe", "Structured page state: URL, origin, title, interactive elements and text."],
-              ["Decide", "The model proposes one granular tool call per step, validated against schemas."],
-              ["Policy", "The risk engine classifies it LOW / MEDIUM / HIGH / BLOCKED. The model can never override it."],
-              ["Approve", "HIGH-risk actions pause the browser until you approve that single action."],
-              ["Verify", "Success is only claimed when observations provide evidence it actually happened."],
-            ].map(([title, body], i) => (
-              <li key={title} className="flex gap-3">
-                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-nebula-400/30 bg-nebula-500/10 text-[11px] text-nebula-200">
-                  {i + 1}
-                </span>
-                <span>
-                  <strong className="text-slate-100">{title}.</strong> {body}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </Panel>
+          <h1 className="mt-8 text-6xl font-semibold tracking-[-0.04em] text-strong sm:text-7xl">
+            NEBULA
+          </h1>
 
-        <Panel className="p-5">
-          <SectionTitle>Runtime</SectionTitle>
-          <dl className="flex flex-col gap-3 text-[12px]">
-            <div className="flex items-center justify-between gap-3">
-              <dt className="text-slate-400">Agent brain</dt>
-              <dd className="text-right font-mono text-slate-200">
-                {info ? `${info.provider} · ${info.model}` : "…"}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <dt className="text-slate-400">Browser</dt>
-              <dd className="font-mono text-slate-200">Playwright · Chromium (isolated per task)</dd>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <dt className="text-slate-400">Step budget</dt>
-              <dd className="font-mono text-slate-200">{info ? `${info.limits.max_steps} steps` : "…"}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <dt className="text-slate-400">Task time limit</dt>
-              <dd className="font-mono text-slate-200">
-                {info ? `${info.limits.max_task_minutes} min` : "…"}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <dt className="text-slate-400">Domain policy</dt>
-              <dd className="font-mono text-slate-200">explicit allowlist</dd>
-            </div>
-          </dl>
-          <p className="mt-4 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[11px] leading-relaxed text-slate-400">
-            V1 is a general-purpose browser agent within these boundaries — it is not claimed to work
-            perfectly on every website. Sites may block automation, change layout, or require logins
-            NEBULA will not perform.
+          <p className="mt-3 max-w-2xl text-[20px] leading-snug tracking-[-0.01em] text-strong">
+            One AI. Every Website.
           </p>
-        </Panel>
+
+          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted">
+            Give Nebula a task. It navigates the web, understands what it
+            sees, and gets the work done — with a policy engine that asks
+            you before anything consequential.
+          </p>
+
+          <div className="mt-10 flex flex-wrap items-center gap-3">
+            <Link href="/tasks">
+              <button
+                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-md)] px-5 text-[14px] font-medium tracking-[-0.005em] text-[var(--color-ink-strong)]"
+                style={{
+                  background: "var(--color-accent-500)",
+                  border: "1px solid var(--color-accent-600)",
+                }}
+              >
+                Launch Nebula
+                <ArrowRight className="size-4" />
+              </button>
+            </Link>
+            <a href="#live-mission">
+              <button
+                className="inline-flex h-11 items-center gap-2 rounded-[var(--radius-md)] px-5 text-[14px] font-medium tracking-[-0.005em] text-[var(--color-ink-muted)] hover:text-[var(--color-ink-strong)]"
+                style={{
+                  background: "var(--color-void-soft)",
+                  border: "1px solid var(--color-void-line)",
+                }}
+              >
+                <Play className="size-3.5" />
+                See how it works
+              </button>
+            </a>
+          </div>
+
+          <div className="mt-16 grid gap-3 text-[12px] text-faint sm:grid-cols-3">
+            <div className="surface-soft px-3 py-2">
+              <span className="mono text-[10px] uppercase tracking-[0.16em] text-faint">
+                Eight structured tools
+              </span>
+              <p className="mt-1 text-strong">
+                navigate · go_back · read_page · screenshot · click · type · scroll · wait_for_load
+              </p>
+            </div>
+            <div className="surface-soft px-3 py-2">
+              <span className="mono text-[10px] uppercase tracking-[0.16em] text-faint">
+                Policy before action
+              </span>
+              <p className="mt-1 text-strong">
+                Allowlist · risk · single-action approval · prompt-injection defence
+              </p>
+            </div>
+            <div className="surface-soft px-3 py-2">
+              <span className="mono text-[10px] uppercase tracking-[0.16em] text-faint">
+                Verifiable results
+              </span>
+              <p className="mt-1 text-strong">
+                Every completed task ships with evidence, not a claim.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
-    </div>
+
+      {/* ============================== LIVE MISSION ============================== */}
+      <section id="live-mission" className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.22em] text-faint">
+              Live mission
+            </div>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-strong">
+              A real mission, telemetry, no filler.
+            </h2>
+            <p className="mt-4 max-w-md text-[14px] leading-relaxed text-muted">
+              Below is the mission activity panel from a Nebula task
+              running in real time. The status of each step is the only
+              thing you see — never chain-of-thought, never internal
+              reasoning. Each stage animates in once it completes.
+            </p>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-void-line)] bg-[var(--color-void-soft)] px-3 py-2 text-[12px] text-muted">
+              <span className="mono text-[10px] uppercase tracking-[0.16em] text-faint">
+                TASK
+              </span>
+              <span className="text-strong">Find RTX 4060 laptops under ₹80,000</span>
+            </div>
+          </div>
+
+          <LiveMission />
+        </div>
+      </section>
+
+      {/* ============================== HOW IT WORKS ============================== */}
+      <HowItWorks />
+
+      {/* ============================== CONSTELLATION ============================== */}
+      <ConstellationMap />
+
+      {/* ============================== BUILT FOR CONTROL ============================== */}
+      <BuiltForControl />
+
+      {/* ============================== FINAL CTA ============================== */}
+      <FinalCTA />
+
+      {/* ============================== FOOTER ============================== */}
+      <footer className="border-t border-[var(--color-void-line)] py-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 text-[11px] text-faint">
+          <div className="mono tracking-[0.16em]">NEBULA · V1</div>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="hover:text-strong">Sign in</Link>
+            <Link href="/tasks" className="hover:text-strong">Tasks</Link>
+            <Link href="/settings" className="hover:text-strong">Settings</Link>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }

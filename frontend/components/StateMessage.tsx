@@ -159,45 +159,45 @@ function BrowserFixPanel() {
 
   return (
     <div className="mt-3 rounded-xl border border-white/15 bg-black/30 p-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-ink-muted)]">
         Browser diagnostics — this machine
       </p>
 
-      {!diag && <p className="mt-2 text-[12px] text-slate-400">Checking the browser environment…</p>}
+      {!diag && <p className="mt-2 text-[12px] text-[var(--color-ink-muted)]">Checking the browser environment…</p>}
 
       {diag && (
         <>
           <dl className="mt-2 grid gap-1 text-[11px] sm:grid-cols-2">
             <div className="flex justify-between gap-3 sm:block">
-              <dt className="text-slate-500">Platform</dt>
-              <dd className="text-slate-300">{diag.platform}</dd>
+              <dt className="text-[var(--color-ink-faint)]">Platform</dt>
+              <dd className="text-[var(--color-ink-muted)]">{diag.platform}</dd>
             </div>
             <div className="flex justify-between gap-3 sm:block">
-              <dt className="text-slate-500">Python</dt>
-              <dd className="text-slate-300">{diag.python}</dd>
+              <dt className="text-[var(--color-ink-faint)]">Python</dt>
+              <dd className="text-[var(--color-ink-muted)]">{diag.python}</dd>
             </div>
             <div className="flex items-center justify-between gap-3 sm:block">
-              <dt className="text-slate-500">Playwright package</dt>
-              <dd className={diag.playwright_installed ? "text-emerald-300" : "text-rose-300"}>
+              <dt className="text-[var(--color-ink-faint)]">Playwright package</dt>
+              <dd className={diag.playwright_installed ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}>
                 {diag.playwright_version ?? "not installed"}
               </dd>
             </div>
             <div className="flex items-center justify-between gap-3 sm:block">
-              <dt className="text-slate-500">Chromium binary</dt>
-              <dd className={diag.browser_installed ? "text-emerald-300" : "text-rose-300"}>
+              <dt className="text-[var(--color-ink-faint)]">Chromium binary</dt>
+              <dd className={diag.browser_installed ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}>
                 {diag.browser_installed ? "found" : "not found"}
               </dd>
             </div>
             {diag.missing_system_libs.length > 0 && (
               <div className="sm:col-span-2">
-                <dt className="text-slate-500">Missing system libraries</dt>
-                <dd className="break-words text-rose-300">{diag.missing_system_libs.join(", ")}</dd>
+                <dt className="text-[var(--color-ink-faint)]">Missing system libraries</dt>
+                <dd className="break-words text-[var(--color-danger)]">{diag.missing_system_libs.join(", ")}</dd>
               </div>
             )}
           </dl>
 
           {diag.problem && (
-            <p className="mt-2 flex items-start gap-2 text-[12px] text-amber-100">
+            <p className="mt-2 flex items-start gap-2 text-[12px] text-[var(--color-warning)]">
               <span className="mt-0.5 shrink-0"><IconWarn size={13} /></span>
               {diag.problem}
             </p>
@@ -205,9 +205,9 @@ function BrowserFixPanel() {
 
           {remedy && (
             <div className="mt-2">
-              <p className="text-[11px] text-slate-400">Run this in your project directory to fix it:</p>
+              <p className="text-[11px] text-[var(--color-ink-muted)]">Run this in your project directory to fix it:</p>
               <div className="mt-1 flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto rounded-lg border border-white/10 bg-black/50 px-3 py-2 font-mono text-[11px] text-emerald-200">
+                <code className="flex-1 overflow-x-auto rounded-lg border border-[var(--color-void-line)] bg-black/50 px-3 py-2 font-mono text-[11px] text-[var(--color-success)]">
                   {remedy}
                 </code>
                 <button onClick={() => copy(remedy)} className="btn-ghost px-2.5 py-1.5 text-[11px]">
@@ -218,7 +218,7 @@ function BrowserFixPanel() {
           )}
 
           {healthy && (
-            <p className="mt-2 flex items-center gap-2 text-[12px] text-emerald-200">
+            <p className="mt-2 flex items-center gap-2 text-[12px] text-[var(--color-success)]">
               <IconCheck size={13} /> The browser environment is ready — start a new task to continue.
             </p>
           )}
@@ -226,7 +226,7 @@ function BrowserFixPanel() {
           {/* Which backend produced this card — a stale process was mistaken for
               a regression once, so every failure screenshot now carries it. */}
           {diag?.build && (
-            <p className="mt-2 font-mono text-[10px] text-slate-500">
+            <p className="mt-2 font-mono text-[10px] text-[var(--color-ink-faint)]">
               backend build {diag.build.commit}
               {diag.build.dirty ? " + uncommitted" : ""} · diagnostics rev {diag.build.diagnostics_revision}
             </p>
@@ -237,7 +237,7 @@ function BrowserFixPanel() {
           </button>
 
           {testResult && (
-            <p className={`mt-2 text-[12px] ${testResult.startsWith("✓") ? "text-emerald-200" : "text-rose-200"}`}>
+            <p className={`mt-2 text-[12px] ${testResult.startsWith("✓") ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
               {testResult}
             </p>
           )}
@@ -253,10 +253,10 @@ export function StateMessage({ task }: { task: TaskDetail }) {
 
   const tone =
     copy.tone === "bad"
-      ? "border-rose-400/35 bg-rose-500/[0.07] text-rose-100"
+      ? "border-[rgba(239,77,107,0.30)] bg-[var(--color-danger-bg)]/[0.07] text-[var(--color-danger)]"
       : copy.tone === "warn"
-      ? "border-amber-400/35 bg-amber-500/[0.07] text-amber-100"
-      : "border-sky-400/30 bg-sky-500/[0.07] text-sky-100";
+      ? "border-[rgba(245,185,79,0.30)] bg-[var(--color-warning-bg)]/[0.07] text-[var(--color-warning)]"
+      : "border-[rgba(33,150,243,0.35)] bg-[rgba(33,150,243,0.10)]/[0.07] text-[var(--color-accent-200)]";
 
   return (
     <section role="status" className={`animate-fade-up rounded-2xl border p-4 ${tone}`}>

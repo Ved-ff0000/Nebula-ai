@@ -70,7 +70,7 @@ export function NebulaLogo({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span className="leading-none">
           <NebulaWordmark className="block text-[15px] text-white" />
-          <span className="mt-1 block text-[9px] uppercase tracking-[0.28em] text-nebula-300/80">
+          <span className="mt-1 block text-[9px] uppercase tracking-[0.28em] text-[var(--color-accent-300)]/80">
             browser agent
           </span>
         </span>

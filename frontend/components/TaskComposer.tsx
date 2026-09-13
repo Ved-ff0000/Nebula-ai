@@ -117,7 +117,7 @@ export function TaskComposer({ autoFocus = false }: { autoFocus?: boolean }) {
           }}
           rows={3}
           placeholder='Give the web a goal…  e.g. "Find three machine-learning internships in Hyderabad, compare their requirements, and tell me which fits a Python + scikit-learn student."'
-          className="w-full resize-none bg-transparent px-2 py-1 text-[15px] leading-relaxed text-slate-100 outline-none placeholder:text-slate-500"
+          className="w-full resize-none bg-transparent px-2 py-1 text-[15px] leading-relaxed text-[var(--color-ink-strong)] outline-none placeholder:text-[var(--color-ink-faint)]"
         />
 
         <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
@@ -133,14 +133,14 @@ export function TaskComposer({ autoFocus = false }: { autoFocus?: boolean }) {
           >
             {advanced ? "▾" : "▸"} Permissions
           </button>
-          <span className="ml-auto hidden font-mono text-[10px] text-slate-500 sm:block">
+          <span className="ml-auto hidden font-mono text-[10px] text-[var(--color-ink-faint)] sm:block">
             ⌘/Ctrl + ⏎ to run
           </span>
         </div>
 
         {advanced && (
           <div className="mt-3 animate-fade-up rounded-xl border border-white/10 bg-black/20 p-3">
-            <label htmlFor="domains" className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            <label htmlFor="domains" className="text-[11px] uppercase tracking-[0.2em] text-[var(--color-ink-muted)]">
               Additional allowed domains for this task
             </label>
             <input
@@ -150,7 +150,7 @@ export function TaskComposer({ autoFocus = false }: { autoFocus?: boolean }) {
               value={extraDomains}
               onChange={(e) => setExtraDomains(e.target.value)}
             />
-            <p className="mt-2 text-[11px] text-slate-500">
+            <p className="mt-2 text-[11px] text-[var(--color-ink-faint)]">
               V1 enforces an explicit allowlist. Navigation to anything outside the global allowlist plus
               these domains is blocked and logged. Credentials, payments and CAPTCHA handling are always
               blocked, regardless of permissions.
@@ -160,12 +160,12 @@ export function TaskComposer({ autoFocus = false }: { autoFocus?: boolean }) {
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+        <p role="alert" className="mt-2 rounded-xl border border-[rgba(239,77,107,0.30)] bg-[var(--color-danger-bg)]/10 px-3 py-2 text-xs text-[var(--color-danger)]">
           {error}
         </p>
       )}
 
-      <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-500">
+      <p className="mt-3 text-center text-[11px] leading-relaxed text-[var(--color-ink-faint)]">
         NEBULA operates a sandboxed browser under an explicit domain allowlist and a risk policy.
         Consequential actions (submitting, sending, committing) always pause for your approval.
         Credentials, payments, CAPTCHA bypass and destructive actions are never permitted.
@@ -180,14 +180,14 @@ export function TaskComposer({ autoFocus = false }: { autoFocus?: boolean }) {
               if (s.domain) setExtraDomains(s.domain);
               ref.current?.focus();
             }}
-            className="panel group p-4 text-left transition hover:border-nebula-400/40 hover:bg-nebula-500/[0.08]"
+            className="panel group p-4 text-left transition hover:border-[rgba(33,150,243,0.35)] hover:bg-[var(--color-accent-500)]/[0.08]"
           >
-            <span className="text-nebula-300" aria-hidden>
+            <span className="text-[var(--color-accent-300)]" aria-hidden>
               <s.icon size={22} />
             </span>
-            <p className="mt-1 text-sm font-medium text-slate-100">{s.title}</p>
-            <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-slate-400">{s.goal}</p>
-            <span className="mt-3 inline-block text-[10px] uppercase tracking-[0.2em] text-nebula-300 opacity-0 transition group-hover:opacity-100">
+            <p className="mt-1 text-sm font-medium text-[var(--color-ink-strong)]">{s.title}</p>
+            <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-[var(--color-ink-muted)]">{s.goal}</p>
+            <span className="mt-3 inline-block text-[10px] uppercase tracking-[0.2em] text-[var(--color-accent-300)] opacity-0 transition group-hover:opacity-100">
               use this goal →
             </span>
           </button>

@@ -1,144 +1,249 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* =========================================================================
+   NEBULA — design system
+   =========================================================================
+   Single source of truth. Tokens live here; components reference them via
+   Tailwind utilities or CSS variables. No random hex values, no gradients
+   in component files, no decorative shadows.
 
-:root {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --surface: 255 255 255;
-  --ink: 12 14 26;
+   Principles:
+   - Dark-first. "Deep-space" — near-black, deep navy, charcoal, with a
+     single accent family (electric blue → icy cyan) that means "Nebula is
+     doing something here." No purple.
+   - State colors are real: success / warning / danger / neutral.
+   - Surfaces use contrast, not glassmorphism. Glass is opt-in.
+   - Motion has a vocabulary: orbit, signal, scan, warp, constellation.
+     They live in `lib/motion.ts` and use these tokens.
+   ========================================================================= */
+
+@import "tailwindcss";
+
+/* Fonts (Geist + Geist Mono via next/font; fallbacks if offline) */
+@theme {
+  --font-sans: var(--font-geist-sans, ui-sans-serif), system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-geist-mono, ui-monospace), "SFMono-Regular", Menlo,
+    Consolas, monospace;
+
+  /* ---- COLOR · surfaces (no purple, no "AI pink") ---- */
+  --color-void: #05060f;        /* page background */
+  --color-void-soft: #0a0c1a;   /* section background, slightly raised */
+  --color-void-panel: #0f1226;  /* panel surface */
+  --color-void-line: #161a33;   /* hairline borders */
+  --color-void-elevated: #141833;/* hover/active */
+
+  /* ---- COLOR · ink (text) ---- */
+  --color-ink: #e8ecff;
+  --color-ink-strong: #ffffff;
+  --color-ink-muted: #97a0c8;
+  --color-ink-faint: #5a6388;
+  --color-ink-disabled: #3a416b;
+
+  /* ---- COLOR · accent (electric blue → icy cyan) ---- */
+  --color-accent-50:  #eaf6ff;
+  --color-accent-100: #cfeaff;
+  --color-accent-200: #9fd9ff;
+  --color-accent-300: #6fc5ff;
+  --color-accent-400: #3fb0ff;
+  --color-accent-500: #2196f3;   /* primary */
+  --color-accent-600: #1578d8;
+  --color-accent-700: #0f5fae;
+  --color-accent-800: #0b4884;
+  --color-accent-900: #08315d;
+
+  /* ---- COLOR · state (each color is doing a job) ---- */
+  --color-success: #2dd4bf;
+  --color-success-bg: rgba(45, 212, 191, 0.10);
+  --color-warning: #f5b94f;
+  --color-warning-bg: rgba(245, 185, 79, 0.10);
+  --color-danger: #ef4d6b;
+  --color-danger-bg: rgba(239, 77, 107, 0.10);
+  --color-neutral: #6b7393;
+
+  /* ---- SPACING / RADIUS / SHADOW ---- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+
+  /* shadows are reserved for elevation, not decoration */
+  --shadow-1: 0 1px 0 rgba(255,255,255,0.04) inset,
+              0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-2: 0 12px 32px -16px rgba(0,0,0,0.6);
+  --shadow-focus: 0 0 0 2px rgba(33,150,243,0.45);
+
+  /* ---- MOTION (used by lib/motion.ts) ---- */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --duration-instant: 80ms;
+  --duration-fast: 160ms;
+  --duration-base: 260ms;
+  --duration-slow: 460ms;
+  --duration-orbit: 14s;
+
+  /* ---- LAYERS ---- */
+  --z-bg: 0;
+  --z-base: 10;
+  --z-raised: 20;
+  --z-overlay: 40;
+  --z-modal: 60;
+  --z-toast: 80;
 }
 
-/* ------------------------------------------------------------------ theme */
+/* =========================================================================
+   Base
+   ========================================================================= */
 html {
   color-scheme: dark;
+  background: var(--color-void);
 }
-html.light {
-  color-scheme: light;
-}
-
 body {
-  @apply bg-void text-slate-100 antialiased;
+  background: var(--color-void);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11", "calt";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+/* The "star field" — a single fixed background, never animated per-element. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(33,150,243,0.06), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(45,212,191,0.04), transparent 60%),
+    var(--color-void);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image:
-    radial-gradient(60rem 40rem at 12% -10%, rgba(109, 77, 251, 0.20), transparent 60%),
-    radial-gradient(48rem 34rem at 88% 8%, rgba(34, 211, 238, 0.14), transparent 62%),
-    radial-gradient(40rem 30rem at 60% 110%, rgba(236, 72, 153, 0.10), transparent 60%);
-  background-attachment: fixed;
-  min-height: 100vh;
+    radial-gradient(1px 1px at 12% 18%, rgba(232,236,255,0.6) 50%, transparent),
+    radial-gradient(1px 1px at 24% 64%, rgba(232,236,255,0.5) 50%, transparent),
+    radial-gradient(1px 1px at 38% 12%, rgba(232,236,255,0.4) 50%, transparent),
+    radial-gradient(1px 1px at 56% 82%, rgba(232,236,255,0.5) 50%, transparent),
+    radial-gradient(1px 1px at 70% 28%, rgba(232,236,255,0.45) 50%, transparent),
+    radial-gradient(1px 1px at 88% 58%, rgba(232,236,255,0.55) 50%, transparent),
+    radial-gradient(1px 1px at 6% 76%, rgba(232,236,255,0.45) 50%, transparent),
+    radial-gradient(1px 1px at 92% 12%, rgba(232,236,255,0.4) 50%, transparent);
+  background-size: 100% 100%;
+  opacity: 0.5;
 }
 
-html.light body {
-  @apply bg-slate-50 text-slate-900;
-  background-image:
-    radial-gradient(60rem 40rem at 12% -10%, rgba(109, 77, 251, 0.16), transparent 60%),
-    radial-gradient(48rem 34rem at 88% 8%, rgba(34, 211, 238, 0.14), transparent 62%),
-    radial-gradient(40rem 30rem at 60% 110%, rgba(236, 72, 153, 0.08), transparent 60%);
+/* Selection */
+::selection {
+  background: rgba(33,150,243,0.30);
+  color: var(--color-ink-strong);
 }
 
-/* ------------------------------------------------------------- primitives */
-@layer components {
-  .panel {
-    @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl shadow-panel;
-  }
-  html.light .panel {
-    @apply border-slate-200 bg-white/80;
-  }
-
-  .panel-strong {
-    @apply rounded-2xl border border-white/10 bg-void-panel/60 backdrop-blur-xl;
-  }
-  html.light .panel-strong {
-    @apply border-slate-200 bg-white;
-  }
-
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium
-           transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-  }
-  .btn-primary {
-    @apply btn text-white;
-    background-image: linear-gradient(120deg, #6d4dfb, #8a72ff 45%, #22d3ee);
-    box-shadow: 0 8px 30px -12px rgba(109, 77, 251, 0.9);
-  }
-  .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.08);
-    box-shadow: 0 10px 36px -10px rgba(109, 77, 251, 0.95);
-  }
-  .btn-ghost {
-    @apply btn border border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08];
-  }
-  html.light .btn-ghost {
-    @apply border-slate-200 bg-white text-slate-700 hover:bg-slate-100;
-  }
-  .btn-danger {
-    @apply btn border border-rose-500/30 bg-rose-500/10 text-rose-200 hover:bg-rose-500/20;
-  }
-  html.light .btn-danger {
-    @apply text-rose-700;
-  }
-  .btn-success {
-    @apply btn border border-emerald-500/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25;
-  }
-  html.light .btn-success {
-    @apply text-emerald-800;
-  }
-
-  .input {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-slate-100
-           placeholder:text-slate-500 outline-none transition
-           focus:border-nebula-400/70 focus:ring-2 focus:ring-nebula-500/25;
-  }
-  html.light .input {
-    @apply border-slate-300 bg-white text-slate-900 placeholder:text-slate-400;
-  }
-
-  .chip {
-    @apply inline-flex h-fit w-fit items-center gap-1.5 self-start rounded-full border px-2.5 py-1 text-xs font-medium;
-  }
-
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(100deg, #a99bff, #7dd3fc 55%, #f0abfc);
-  }
-
-  .glow-ring {
-    box-shadow: 0 0 0 1px rgba(138, 114, 255, 0.35), 0 0 44px -14px rgba(109, 77, 251, 0.85);
-  }
-
-  .scroll-area {
-    @apply overflow-y-auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(138, 114, 255, 0.35) transparent;
-  }
-  .scroll-area::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  .scroll-area::-webkit-scrollbar-thumb {
-    background: rgba(138, 114, 255, 0.32);
-    border-radius: 999px;
-  }
-  .scroll-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(138, 114, 255, 0.5);
-  }
-
-  .skeleton {
-    @apply rounded-lg bg-white/[0.06];
-    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
-    background-size: 200% 100%;
-    @apply animate-shimmer;
-  }
+/* Scrollbars — slim, neutral, not chrome */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-void-line) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-void-line);
+  border-radius: 4px;
 }
 
-/* --------------------------------------------------------------- a11y/misc */
-*:focus-visible {
-  outline: 2px solid rgba(138, 114, 255, 0.85);
+/* Focus — keyboard only */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--color-accent-400);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
+/* =========================================================================
+   Component utilities (one place to look)
+   ========================================================================= */
+@utility surface {
+  background: var(--color-void-panel);
+  border: 1px solid var(--color-void-line);
+  border-radius: var(--radius-lg);
+}
+@utility surface-soft {
+  background: var(--color-void-soft);
+  border: 1px solid var(--color-void-line);
+  border-radius: var(--radius-lg);
+}
+@utility hairline {
+  border: 1px solid var(--color-void-line);
+}
+@utility mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+@utility text-strong { color: var(--color-ink-strong); }
+@utility text-muted  { color: var(--color-ink-muted); }
+@utility text-faint  { color: var(--color-ink-faint); }
+
+@utility chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  height: fit-content; width: fit-content;
+  padding: 0.18rem 0.55rem; border-radius: 999px;
+  font-size: 11px; line-height: 1; letter-spacing: 0.02em;
+  border: 1px solid var(--color-void-line);
+  background: var(--color-void-soft);
+  color: var(--color-ink-muted);
+  align-self: flex-start;
+}
+@utility chip-active {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  height: fit-content; width: fit-content;
+  padding: 0.18rem 0.55rem; border-radius: 999px;
+  font-size: 11px; line-height: 1; letter-spacing: 0.02em;
+  border: 1px solid rgba(33,150,243,0.35);
+  background: rgba(33,150,243,0.10);
+  color: var(--color-accent-200);
+  align-self: flex-start;
+}
+
+/* =========================================================================
+   Motion vocabulary
+   ========================================================================= */
+@keyframes nebula-orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes nebula-signal {
+  0%   { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes nebula-scan {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+@keyframes nebula-warp {
+  0%   { transform: scale(1); filter: blur(0); }
+  50%  { transform: scale(1.02); filter: blur(2px); }
+  100% { transform: scale(1); filter: blur(0); }
+}
+@keyframes nebula-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Reduced motion — kill every animation. We still need the visuals,
+   just without movement. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

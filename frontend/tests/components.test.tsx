@@ -234,3 +234,48 @@ describe("StatusPill & security states", () => {
     expect(text).toMatch(/returned no detail message/i);
   });
 });
+
+// =================================================================
+// New design system — primitives + workspace pieces
+// =================================================================
+
+import { Chip } from "@/components/primitives/Chip";
+import { NebulaButton } from "@/components/primitives/NebulaButton";
+import { NebulaInput } from "@/components/primitives/NebulaInput";
+import { AgentActivity } from "@/components/workspace/AgentActivity";
+
+describe("Design system primitives", () => {
+  it("Chip renders text and a self-sizing class so it never stretches", () => {
+    wrap(<Chip tone="active">active chip</Chip>);
+    const span = screen.getByText("active chip");
+    expect(span).toBeInTheDocument();
+    // .chip class contains the alignment / sizing invariants we documented
+    expect(span.className).toContain("chip-active");
+  });
+
+  it("NebulaButton reflects disabled + loading states", () => {
+    wrap(<NebulaButton loading>Send</NebulaButton>);
+    const btn = screen.getByRole("button", { name: /send/i });
+    expect(btn).toBeDisabled();
+    expect(btn.querySelector(".animate-spin")).toBeTruthy();
+  });
+
+  it("NebulaInput accepts an iconLeft prop", () => {
+    wrap(<NebulaInput iconLeft={<span data-testid="icon">→</span>} placeholder="hi" />);
+    expect(screen.getByTestId("icon")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("hi")).toBeInTheDocument();
+  });
+});
+
+describe("AgentActivity renders a legacy row with an explanatory note", () => {
+  it("never emits a bare dangling-colon error", () => {
+    wrap(<AgentActivity items={[
+      { id: "9", type: "error", status: "failed",
+        summary: "Browser unavailable: Browser could not be started:",
+        origin: null, ts: new Date().toISOString() },
+    ]} />);
+    const text = document.body.textContent ?? "";
+    expect(text).not.toMatch(/could not be started:\\s*$/m);
+    expect(text).toMatch(/reason was not recorded/i);
+  });
+});

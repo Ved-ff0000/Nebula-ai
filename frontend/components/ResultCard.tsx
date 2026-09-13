@@ -19,35 +19,35 @@ export function ResultCard({ task, onNewTask }: { task: TaskDetail; onNewTask: (
   return (
     <section
       className={`animate-fade-up rounded-2xl border p-4 ${
-        ok ? "border-emerald-400/35 bg-emerald-500/[0.07]" : "border-rose-400/35 bg-rose-500/[0.07]"
+        ok ? "border-[rgba(45,212,191,0.30)] bg-[var(--color-success-bg)]/[0.07]" : "border-[rgba(239,77,107,0.30)] bg-[var(--color-danger-bg)]/[0.07]"
       }`}
       aria-label="Task result"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className={`grid h-9 w-9 place-items-center rounded-xl border ${
-          ok ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200"
-             : "border-rose-400/40 bg-rose-400/10 text-rose-200"}`} aria-hidden>
+          ok ? "border-[rgba(45,212,191,0.30)] bg-[var(--color-success-bg)] text-[var(--color-success)]"
+             : "border-[rgba(239,77,107,0.30)] bg-[var(--color-danger-bg)] text-[var(--color-danger)]"}`} aria-hidden>
           {ok ? <IconStar size={19} /> : <IconWarn size={19} />}
         </span>
         <div>
-          <h3 className={`text-sm font-semibold ${ok ? "text-emerald-100" : "text-rose-100"}`}>
+          <h3 className={`text-sm font-semibold ${ok ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
             {ok ? "Goal completed — verified" : "Goal not verified"}
           </h3>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-[var(--color-ink-muted)]">
             Duration {durationFrom(task.started_at, task.completed_at)} · {task.current_step} steps ·
             retries {task.retry_count} · confidence {(result.confidence * 100).toFixed(0)}%
           </p>
         </div>
       </div>
 
-      <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-slate-100">{result.summary}</p>
+      <p className="mt-3 whitespace-pre-wrap text-[13px] leading-relaxed text-[var(--color-ink-strong)]">{result.summary}</p>
 
       {result.findings.length > 0 && (
         <div className="mt-4">
           <SectionTitle>Key findings</SectionTitle>
           <ul className="flex flex-col gap-1.5">
             {result.findings.map((f, i) => (
-              <li key={i} className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-slate-200">
+              <li key={i} className="rounded-xl border border-[var(--color-void-line)] bg-[var(--color-void-soft)] px-3 py-2 text-[12px] text-[var(--color-ink)]">
                 {f}
               </li>
             ))}
@@ -75,14 +75,14 @@ export function ResultCard({ task, onNewTask }: { task: TaskDetail; onNewTask: (
           <SectionTitle>Needs your follow-up</SectionTitle>
           <ul className="flex flex-col gap-1.5">
             {result.follow_ups.map((f, i) => (
-              <li key={i} className="text-[12px] text-amber-100/90">→ {f}</li>
+              <li key={i} className="text-[12px] text-[var(--color-warning)]/90">→ {f}</li>
             ))}
           </ul>
         </div>
       )}
 
       {Boolean(result.evidence && (result.evidence as Record<string, unknown>).check) && (
-        <p className="mt-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[11px] text-slate-400">
+        <p className="mt-3 rounded-xl border border-[var(--color-void-line)] bg-black/20 px-3 py-2 text-[11px] text-[var(--color-ink-muted)]">
           Verification evidence: {String((result.evidence as Record<string, unknown>).check)}
         </p>
       )}

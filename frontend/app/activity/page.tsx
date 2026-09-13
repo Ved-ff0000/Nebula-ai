@@ -29,7 +29,7 @@ export default function ActivityPage() {
     <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
       <header className="mb-6">
         <h1 className="text-2xl font-light text-white">Activity</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-[var(--color-ink-muted)]">
           A real-time audit trail across every task. Only observable actions and decisions are recorded —
           never hidden reasoning.
         </p>
@@ -42,8 +42,8 @@ export default function ActivityPage() {
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-lg border px-3 py-1.5 text-[11px] capitalize transition ${
-                filter === f ? "border-nebula-400/40 bg-nebula-500/20 text-white"
-                             : "border-white/10 text-slate-400 hover:text-slate-200"
+                filter === f ? "border-[rgba(33,150,243,0.35)] bg-[rgba(33,150,243,0.10)] text-white"
+                             : "border-[var(--color-void-line)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
               }`}
               aria-pressed={filter === f}
             >
@@ -55,21 +55,21 @@ export default function ActivityPage() {
         {loading ? (
           <div className="flex flex-col gap-2">{[0, 1, 2, 3].map((i) => <div key={i} className="skeleton h-12" />)}</div>
         ) : visible.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-slate-500">
+          <p className="rounded-xl border border-dashed border-[var(--color-void-line)] px-4 py-10 text-center text-sm text-[var(--color-ink-faint)]">
             No activity recorded yet.
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-white/5">
             {visible.map((item, idx) => (
               <li key={`${item.task_id}-${idx}`} className="flex items-start gap-3 py-2.5">
-                <span className="mt-0.5 text-sm text-nebula-300" aria-hidden>{EVENT_ICON[item.type] ?? "•"}</span>
+                <span className="mt-0.5 text-sm text-[var(--color-accent-300)]" aria-hidden>{EVENT_ICON[item.type] ?? "•"}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] text-slate-200">{humaniseLegacyMessage(item.summary)}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
+                  <p className="text-[13px] text-[var(--color-ink)]">{humaniseLegacyMessage(item.summary)}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[var(--color-ink-faint)]">
                     <span className="font-mono">{clockTime(item.timestamp)}</span>
                     <span>{shortDate(item.timestamp)}</span>
                     {item.origin && <span className="truncate">{originOf(item.origin)}</span>}
-                    <Link href={`/tasks/${item.task_id}`} className="text-nebula-300 hover:underline">
+                    <Link href={`/tasks/${item.task_id}`} className="text-[var(--color-accent-300)] hover:underline">
                       #{item.task_id.slice(0, 8)}
                     </Link>
                     {item.status !== "info" && (

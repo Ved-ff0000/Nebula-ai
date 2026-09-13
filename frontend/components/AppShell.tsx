@@ -44,17 +44,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   // Auth guard: unauthenticated users are redirected to the sign-in page.
+  // The landing page ("/") is public so visitors can see the product.
   useEffect(() => {
-    if (!isAuthPage && !getToken()) router.replace("/login");
+    if (!isAuthPage && pathname !== "/" && !getToken()) router.replace("/login");
   }, [isAuthPage, router, pathname]);
 
   if (isAuthPage) {
     return <>{children}</>;
   }
 
+  // Landing page has no chrome. Workspace pages render their own sidebar.
+  if (pathname === "/" || pathname.startsWith("/tasks")) {
+    return <>{children}</>;
+  }
+
   const sidebar = (
     <aside
-      className={`flex h-full flex-col gap-4 border-r border-white/10 bg-void-soft/70 p-3 backdrop-blur-xl transition-[width] duration-300 ${
+      className={`flex h-full flex-col gap-4 border-r border-[var(--color-void-line)] bg-[var(--color-void-soft)]/70 p-3 backdrop-blur-xl transition-[width] duration-300 ${
         collapsed ? "w-[76px]" : "w-[248px]"
       }`}
     >
@@ -62,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {collapsed ? <NebulaMark size={26} /> : <NebulaLogo />}
         <button
           onClick={() => setCollapsed((c) => !c)}
-          className="hidden rounded-lg border border-white/10 px-2 py-1 text-xs text-slate-400 hover:text-slate-200 lg:block"
+          className="hidden rounded-lg border border-[var(--color-void-line)] px-2 py-1 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] lg:block"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? "»" : "«"}
@@ -83,8 +89,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               href={item.href}
               className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
                 active
-                  ? "border border-nebula-400/30 bg-nebula-500/15 text-white"
-                  : "border border-transparent text-slate-400 hover:bg-white/[0.05] hover:text-slate-100"
+                  ? "border border-[rgba(33,150,243,0.35)] bg-[rgba(33,150,243,0.10)] text-[var(--color-ink-strong)]"
+                  : "border border-transparent text-[var(--color-ink-muted)] hover:bg-[var(--color-void-soft)] hover:text-[var(--color-ink-strong)]"
               }`}
               title={item.label}
             >
@@ -97,22 +103,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {!collapsed && (
         <div className="min-h-0 flex-1">
-          <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.24em] text-slate-500">Recent</p>
+          <p className="px-3 pb-2 text-[10px] uppercase tracking-[0.24em] text-[var(--color-ink-faint)]">Recent</p>
           <div className="scroll-area flex max-h-[38vh] flex-col gap-1 pr-1">
             {recent.length === 0 && (
-              <p className="px-3 text-xs text-slate-500">No tasks yet — give the web a goal.</p>
+              <p className="px-3 text-xs text-[var(--color-ink-faint)]">No tasks yet — give the web a goal.</p>
             )}
             {recent.map((t) => (
               <Link
                 key={t.id}
                 href={`/tasks/${t.id}`}
-                className={`rounded-xl px-3 py-2 text-xs transition hover:bg-white/[0.05] ${
-                  pathname === `/tasks/${t.id}` ? "bg-white/[0.06] text-slate-100" : "text-slate-400"
+                className={`rounded-xl px-3 py-2 text-xs transition hover:bg-[var(--color-void-soft)] ${
+                  pathname === `/tasks/${t.id}` ? "bg-white/[0.06] text-[var(--color-ink-strong)]" : "text-[var(--color-ink-muted)]"
                 }`}
               >
                 <span className="line-clamp-2">{t.goal}</span>
-                <span className="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
-                  <span className="h-1 w-1 rounded-full bg-nebula-300/70" />
+                <span className="mt-1 flex items-center gap-1 text-[10px] text-[var(--color-ink-faint)]">
+                  <span className="h-1 w-1 rounded-full bg-[rgba(33,150,243,0.10)]" />
                   {STATUS_LABEL[t.status]}
                 </span>
               </Link>
@@ -121,17 +127,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <div className="mt-auto flex flex-col gap-2 border-t border-white/10 pt-3">
+      <div className="mt-auto flex flex-col gap-2 border-t border-[var(--color-void-line)] pt-3">
         <div className={`flex items-center gap-2 ${collapsed ? "justify-center" : ""}`}>
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-nebula-500 to-plasma-500 text-xs font-semibold text-white">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[var(--color-accent-500)] to-plasma-500 text-xs font-semibold text-[var(--color-ink-strong)]">
             {(user?.display_name || user?.email || "N").slice(0, 1).toUpperCase()}
           </span>
           {!collapsed && (
             <span className="min-w-0">
-              <span className="block truncate text-xs text-slate-200">
+              <span className="block truncate text-xs text-[var(--color-ink)]">
                 {user?.display_name || user?.email || "Operator"}
               </span>
-              <span className="block truncate text-[10px] text-slate-500">
+              <span className="block truncate text-[10px] text-[var(--color-ink-faint)]">
                 {user?.email || "not signed in"}
               </span>
             </span>
@@ -173,7 +179,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-white/10 bg-void/80 px-4 py-3 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--color-void-line)] bg-[var(--color-void-soft)]/80 px-4 py-3 backdrop-blur-xl lg:hidden">
           <button onClick={() => setDrawerOpen(true)} className="btn-ghost px-3 py-1.5" aria-label="Open navigation">
             ☰
           </button>

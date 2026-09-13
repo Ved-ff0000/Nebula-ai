@@ -14,10 +14,10 @@ const ToastContext = createContext<{ push: (message: string, kind?: ToastKind) =
 });
 
 const KIND_CLASS: Record<ToastKind, string> = {
-  info: "border-sky-400/30 bg-sky-500/10 text-sky-100",
-  success: "border-emerald-400/30 bg-emerald-500/10 text-emerald-100",
-  error: "border-rose-400/30 bg-rose-500/10 text-rose-100",
-  warning: "border-amber-400/30 bg-amber-500/10 text-amber-100",
+  info: "border-[rgba(33,150,243,0.35)] bg-[rgba(33,150,243,0.10)] text-[var(--color-accent-200)]",
+  success: "border-[rgba(45,212,191,0.30)] bg-[var(--color-success-bg)]/10 text-[var(--color-success)]",
+  error: "border-[rgba(239,77,107,0.30)] bg-[var(--color-danger-bg)]/10 text-[var(--color-danger)]",
+  warning: "border-[rgba(245,185,79,0.30)] bg-[var(--color-warning-bg)]/10 text-[var(--color-warning)]",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {

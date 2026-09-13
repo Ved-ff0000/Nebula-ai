@@ -19,7 +19,6 @@ const backend = process.env.BACKEND_URL || process.env.NEBULA_BACKEND_URL || "ht
 
 const app = next({ dev, hostname: "0.0.0.0", port });
 const handle = app.getRequestHandler();
-const upgradeHandler = app.getUpgradeHandler();
 
 const proxy = httpProxy.createProxyServer({ target: backend, changeOrigin: true, ws: true });
 
@@ -40,6 +39,9 @@ const isBackendPath = (url = "") =>
   url.startsWith("/api") || url.startsWith("/ws/") || url.startsWith("/demo");
 
 app.prepare().then(() => {
+  // In Next 15, getUpgradeHandler() must be called after prepare().
+  const upgradeHandler = app.getUpgradeHandler();
+
   const server = http.createServer((req, res) => {
     if (isBackendPath(req.url)) return proxy.web(req, res);
     return handle(req, res);

@@ -49,6 +49,8 @@ export interface Approval {
   status: "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
   requested_at: string;
   resolved_at: string | null;
+  /** Derived for the UI: which tool this approval gates (e.g. "click", "type"). */
+  action_type?: string;
 }
 
 export interface TaskResult {
